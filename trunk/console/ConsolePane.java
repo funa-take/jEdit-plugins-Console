@@ -78,11 +78,16 @@ public class ConsolePane extends JTextPane
 
 		
 		/* Press home to move to start of input area */
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0), new HomeAction());
+		// Funa edit
+		// inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0), new HomeAction());
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0), new HomeAction(actionMap.get("caret-begin-line")));
 		
 		
+		// Funa edit
+		// inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, InputEvent.SHIFT_MASK),
+		// new SelectHomeAction());
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, InputEvent.SHIFT_MASK),
-			new SelectHomeAction());
+			new SelectHomeAction(actionMap.get("selection-begin-line")));
 
 		/* Press Up/Down to access history */
 		
@@ -287,12 +292,25 @@ public class ConsolePane extends JTextPane
 	@Override
 	protected void processKeyEvent(KeyEvent e)
 	{
+		// Funa edit
+		if (ClassLoader.getSystemResource("org/gjt/sp/jedit/gui/UserKey.class")!=null){
+			org.gjt.sp.jedit.gui.UserKey.consume(e, 
+				org.gjt.sp.jedit.gui.UserKey.ALLOW_CTRL | org.gjt.sp.jedit.gui.UserKey.ALLOW_SHIFT,
+				org.gjt.sp.jedit.gui.UserKey.ALLOW_CTRL | org.gjt.sp.jedit.gui.UserKey.ALLOW_SHIFT,
+				org.gjt.sp.jedit.gui.UserKey.ALLOW_CTRL | org.gjt.sp.jedit.gui.UserKey.ALLOW_SHIFT,
+				org.gjt.sp.jedit.gui.UserKey.ALLOW_CTRL | org.gjt.sp.jedit.gui.UserKey.ALLOW_SHIFT,
+				true);
+			if (e.isConsumed()){
+				return;
+			}
+		}
 		int endpos = getDocument().getLength();
 		int startpos = getInputStart();
 		
-		if (e.getID() == KeyEvent.KEY_TYPED && getCaretPosition() < startpos) 
+		// Funa edit
+		if (!e.isAltDown() && e.getID() == KeyEvent.KEY_TYPED && getCaretPosition() < startpos) { 
 			setCaretPosition(endpos);			
-		
+		}			
 		super.processKeyEvent(e);
 	} // }}}
 	
@@ -442,18 +460,46 @@ public class ConsolePane extends JTextPane
 	// {{{ HomeAction class
 	class HomeAction extends AbstractAction
 	{
+		// Funa edit
+		private Action delegate;
+		
+		HomeAction(Action delegate)
+		{
+			this.delegate = delegate;
+		}
+		
 		public void actionPerformed(ActionEvent evt)
 		{
+			// Funa edit
+			if (getCaretPosition() >= getInputStart())
 			setCaretPosition(getInputStart());
+			else
+				delegate.actionPerformed(evt);
+			
 		}
 	} // }}}
 
 	// {{{ SelectHomeAction class
 	class SelectHomeAction extends AbstractAction
 	{
+		// Funa edit
+		private Action delegate;
+		
+		SelectHomeAction(){
+		}
+		SelectHomeAction(Action delegate)
+		{
+			this.delegate = delegate;
+		}
+		
 		public void actionPerformed(ActionEvent evt)
 		{
+			// Funa edit
+			if (getCaretPosition() >= getInputStart())
 			select(getInputStart(), getCaretPosition());
+			else
+				delegate.actionPerformed(evt);
+			
 			
 		}
 	} // }}}
