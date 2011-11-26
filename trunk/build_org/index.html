@@ -1,0 +1,846 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"><title>Console plugin user's guide</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.1"><link rel="home" href="#id36078088" title="Console plugin user's guide"><link rel="next" href="#intro" title="Introduction"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="book" title="Console plugin user's guide"><div class="titlepage"><div><div><h1 class="title"><a name="id36078088"></a>Console plugin user's guide</h1></div><div><p class="copyright">Copyright © 1999, 2005 Slava Pestov</p></div><div><p class="copyright">Copyright © 2005, 2008 Alan Ezust</p></div><div><div class="legalnotice" title="Legal Notice"><a name="id36078126"></a><p class="legalnotice-title"><b>Legal Notice</b></p><p>
+   Permission is granted to copy, distribute and/or modify this document under the terms of the GNU Free Documentation License, Version 1.1 or any later version published by the Free Software Foundation; with no "Invariant Sections", "Front-Cover Texts" or "Back-Cover Texts", each as defined in the license. A copy of the license can be found in the file <code class="filename">COPYING.DOC.txt</code> included with jEdit.
+  </p></div></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><ul><li><span class="chapter"><a href="#intro">1. Introduction</a></span></li><li><span class="chapter"><a href="#setup">2.  Setup/Options </a></span><ul><li><span class="section"><a href="#errorpatterns"> Error Patterns Options </a></span></li></ul></li><li><span class="chapter"><a href="#window">3. The console window</a></span></li><li><span class="chapter"><a href="#system-shell">4. The system shell</a></span><ul><li><span class="sect1"><a href="#error-parsing">Error parsing</a></span></li><li><span class="sect1"><a href="#changing-dirs">Changing directories</a></span></li><li><span class="sect1"><a href="#process-manage">Process management</a></span></li><li><span class="sect1"><a href="#env-vars">Environment variables</a></span></li><li><span class="sect1"><a href="#jedit-builtins">jEdit integration built-ins</a></span></li></ul></li><li><span class="chapter"><a href="#bean-shell">5.  The Console BeanShell </a></span></li><li><span class="chapter"><a href="#commando">6. Commando</a></span><ul><li><span class="sect1"><a href="#commando-toolbar">The Commando tool bar</a></span></li><li><span class="sect1"><a href="#commando-window">The Commando window</a></span></li><li><span class="sect1"><a href="#writing-commando">Writing Commando files</a></span><ul><li><span class="sect2"><a href="#id36079535">The UI element</a></span></li><li><span class="sect2"><a href="#id36080021">The COMMANDS element</a></span></li></ul></li></ul></li><li><span class="chapter"><a href="#compile-run">7. Invoking compilers and interpreters</a></span></li><li><span class="chapter"><a href="#macros">8. Macros and the Console plugin</a></span></li><li><span class="chapter"><a href="#cvssvn">9.  Using Console with cvs/svn </a></span></li><li><span class="chapter"><a href="#extending">10. Extending the Console plugin</a></span><ul><li><span class="sect1"><a href="#specifying-dependencies">Specifying dependencies</a></span></li><li><span class="sect1"><a href="#registering-shells">Registering the plugin shells</a></span></li><li><span class="sect1"><a href="#shell-interface">The Shell interface</a></span></li><li><span class="sect1"><a href="#output-interface">The Output interface</a></span></li><li><span class="sect1"><a href="#console-methods">Useful methods in the Console class</a></span></li><li><span class="sect1"><a href="#custom-error-parsing">Custom shells and error parsing</a></span></li></ul></li><li><span class="appendix"><a href="#changes">A. Change log</a></span></li></ul></div><div class="chapter" title="Introduction"><div class="titlepage"><div><div><h2 class="title"><a name="intro"></a>Chapter 1. Introduction</h2></div></div></div><p>
+ The <span class="application">Console</span> plugin has four main functions:
+</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>Running external programs and commands.</p></li><li class="listitem"><p>Parsing the output of external programs for errors in a
+ variety of formats, and reporting those errors using the
+ <span class="application">ErrorList</span> plugin.</p></li><li class="listitem"><p>The <em class="firstterm">Commando</em> feature provides
+ graphical front-ends, specified using an XML file, to command-line tools.</p></li><li class="listitem"><p>Providing an extensible framework for other plugins that need to display streamed output.</p></li></ul></div></div><div class="chapter" title=" Setup/Options "><div class="titlepage"><div><div><h2 class="title"><a name="setup"></a>Chapter 2.  Setup/Options </h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><ul><li><span class="section"><a href="#errorpatterns"> Error Patterns Options </a></span></li></ul></div><p> Console has an optional dependency on ProjectViewer.
+ What this means is that it has some extra features which you can see if you have also installed ProjectViewer plugin. In particular they are: </p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p> The ability to listen to node change events from the projectviewer and make changes to the System shell's current directory. </p></li><li class="listitem"><p> The ability to query the ProjectViewer for the "current root directory" to run build commands from. This is used by the Console commandos for "ant", "make", and "qmake", and perhaps others<sup>[<a name="id36078229" href="#ftn.id36078229" class="footnote">1</a>]</sup>. </p></li></ol></div><h2><a name="id36078237"></a> Option Panes </h2><p> By selecting <code class="literal">Plugin Options - Console </code>, you will notice a number of options. It is recommended you browse through them to get a full idea of what Console (and your other plugins) can do.
+ </p><h2><a name="id36078248"></a> Console - General Options </h2><p> Here, you can set general options that apply to all shells, such as showing the welcome message, character encoding to use, scrollback buffer size, colors, etc. </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><span class="emphasis"><em>Show Welcome Message</em></span> - suppress welcome message on shells. </p></li><li class="listitem"><p><span class="emphasis"><em>Character Encoding</em></span> - If you want to
+  display characters in a different language, change the encoding here.
+  </p></li></ul></div><h2><a name="id36078274"></a> Console - System Shell Options </h2><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p> <span class="emphasis"><em>Shell Prefix </em></span> - This string is inserted before the command you type whenever a command is executed. Console itself does parse and preprocess your commands in its own way, but you have the option of having the commands subsequently evaluated by your native command line shell, which will in turn execute your command.
+     </p><p> Console can choose a sensible os-specific shell prefix for you, by setting it to <code class="literal">osdefault</code>. If this field is blank, or if <code class="literal">none</code> is used, Console will execute commands directly (without a prefix).
+     I prefer using a native shell for its functions, aliases, and redirection, but you can try different values here to see which works best for you.
+     </p><p> In addition, if you like to use a different shell from the OS-default (4NT, or cygwin's bash), you can add it to this list and see if it works. </p></li><li class="listitem"><p>
+		<span class="emphasis"><em>Merge stdout and stderr</em></span> - this option will only affect users of "make", where Console needs to merge the streams in order to resolve pathnames of files of errors inbetween "make entering..leaving" messages.
+	  </p></li><li class="listitem"><p><span class="emphasis"><em>Subshell extra PATH</em></span> - This option
+		  prepends directories to the environment before spawning
+		  subprocesses. If you want your jedit console to be able to find some files in the path, add those directories here.
+	  </p></li><li class="listitem"><p><span class="emphasis"><em>Append extra dirs to PATH</em></span> - if
+        checked, append instead of prepend the extra directories.
+  </p></li></ul></div><div class="section" title=" Error Patterns Options "><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="errorpatterns"></a> Error Patterns Options </h2></div></div></div><p> This option dialog allows you fine grained control over Console's error parsing capabilities.
+ </p><p> Each line of output that is generated by a program that is run in the Console <code class="literal">System</code> (and <code class="literal">ssh</code>) shells is checked against a number of error patterns to determine if the line is part of an error message. If the error message is found, pieces of information are extracted from it to get the line number and filename. This information is in turn fed into Error List to give you a convenient way to send the editor to the location of an error message. </p><p> Each error pattern is a set of regular expressions. To edit, test, add, or remove error patterns from Console's output parsing module, you can select this option dialog. Keep in mind, you must "test/commit" each error pattern before clicking 'ok'. This helps avoid accidentally committing invalid regular expressions that may cause parse errors.
+</p><div class="tip" title=" Removing unused patterns. " style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title"> Removing unused patterns. </h3><p> Since many of the error patterns are similar, it is possible that one of the existing patterns is getting triggered before Console sees the one you are developing. For this reason, it is suggested you remove or disable the error patterns you are not using, and place the error patterns for the tools you use most often at the top of the list.
+</p></div></div><div class="footnotes"><br><hr width="100" align="left"><div class="footnote"><p><sup>[<a name="ftn.id36078229" href="#id36078229" class="para">1</a>] </sup> If you wish to use these commando buttons without the projectviewer, right click on the commando buttons, "customize" and edit the XML file, removing the lines that refer to projectviewer. </p></div></div></div><div class="chapter" title="The console window"><div class="titlepage"><div><div><h2 class="title"><a name="window"></a>Chapter 3. The console window</h2></div></div></div><p> <span class="guimenu"><strong>Plugins</strong></span> -&gt; <span class="guisubmenu"><strong>Console</strong></span> -&gt; <span class="guimenuitem"><strong>Console</strong></span> displays the console window. This window is floating by default, but can be  made to dock into the view in the <span class="guilabel"><strong>Docking</strong></span> pane of the  <span class="guimenuitem"><strong>Global Options</strong></span> dialog box.
+ </p><p>
+ The console window consists of a popup for choosing the current  <em class="firstterm">shell</em>, a series of icon buttons, and a shell input/output area that occupies the remaining space of the window.
+ </p><p>
+ The Console plugin allows arbitrary
+ shells to be plugged in; one shell included with the plugin
+ is called the "System" shell and it runs external programs and
+ commands; another built-in shell is the "BeanShell" shell,
+ which runs commands in jEdit's BeanShell interpreter. Some plugins add
+ their own shells; for example, the <span class="application">SshConsole</span>
+ plugin adds a shell for running shell commands remotely over <span class="command"><strong>ssh</strong></span>.
+ without leaving jEdit.
+ </p><p>
+ Each button shows a tooltip if the mouse pointer is held over it long enough.
+ Here is a description of each button:
+ </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+     <span class="guibutton"><strong>Run last command</strong></span> - runs the
+ most recently entered command.</p></li><li class="listitem"><p>
+     <span class="guibutton"><strong>Run</strong></span> - runs the currently-entered command.
+ This has the same effect as pressing <span class="keycap"><strong>Enter</strong></span> in the text field.
+ </p></li><li class="listitem"><p>
+     <span class="guibutton"><strong>Run to buffer</strong></span> - runs the
+ currently-entered command, but shows the output in a new buffer, instead of in the console window. This has the same effect as pressing <span class="keycap"><strong>Ctrl-Enter</strong></span> from the text field. </p></li><li class="listitem"><p>
+     <span class="guibutton"><strong>Stop</strong></span> - stops the currently running process, if any.</p></li><li class="listitem"><p>
+     <span class="guibutton"><strong>Clear</strong></span> - clears the console window's
+ output area.</p></li></ul></div><div class="tip" title="Tip" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Tip</h3><p>
+  A quick way to switch between shells from the keyboard is by entering the
+  shell name prefixed with ":". For example,
+  ":BeanShell" or ":System". In addition, each shell has its own toggle and switch shortcut defined from <span class="guimenuitem"><strong>Global Options - Shortcuts - Plugin: Console - Shell Switchers </strong></span>.
+ </p></div></div><div class="chapter" title="The system shell"><div class="titlepage"><div><div><h2 class="title"><a name="system-shell"></a>Chapter 4. The system shell</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><ul><li><span class="sect1"><a href="#error-parsing">Error parsing</a></span></li><li><span class="sect1"><a href="#changing-dirs">Changing directories</a></span></li><li><span class="sect1"><a href="#process-manage">Process management</a></span></li><li><span class="sect1"><a href="#env-vars">Environment variables</a></span></li><li><span class="sect1"><a href="#jedit-builtins">jEdit integration built-ins</a></span></li></ul></div><p>
+ This section assumes at least basic familiarity with the command-line
+ interpreter of a Unix, Windows or similar operating system.
+</p><p>
+ As with most other command lines, spaces are used to separate
+ command-line parameters to programs. If a string containing
+ spaces needs to be passed as a single parameter, it should be enclosed with
+ double quotes (<strong class="userinput"><code>"</code></strong>), for example:
+</p><pre class="screen">javac "C:\Source Code\TestServlet.java"</pre><p>
+ Not all commands result in an external process being spawned; the system
+ shell supports "built-ins", which are handled by the
+ Console plugin itself. Built-ins are prefixed with "%" to
+ distinguish them from external commands.
+</p><p>
+ Currently selected text is passed to the program on standard input. In
+ conjunction with the <span class="guibutton"><strong>Run to buffer</strong></span> button, this
+ allows quick filtering of buffer text using shell tools.
+</p><p>
+ Pressing <span class="keycap"><strong>Tab</strong></span> in the console's command input field will
+ attempt to complete the filename or command before the caret. If there is more than
+ one possible completion, they will be listed in the output area.
+</p><p> Processes that read from standard input might work. You can press
+	<span class="keycap"><strong>Control</strong></span>+<span class="keycap"><strong>D</strong></span> to send an end-of-file. Note that since the plugin does not provide a pseudo-terminal, so some
+	programs, such as shells that use getline() or curses(), might not behave properly inside
+	a console window. </p><div class="sect1" title="Error parsing"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="error-parsing"></a>Error parsing</h2></div></div></div><p>
+  Each line of output produced by an external program is fed through several
+  successive <code class="literal">ErrorMatcher</code> objects. Each
+  <code class="literal">ErrorMatcher</code>
+  corresponds to a different style of error messages, and holds
+  onto an three <em class="firstterm">regular expressions</em> - for
+  errors, warnings, and extra lines. </p><p> The order of patterns on this list matters: more specific
+  patterns should be earlier on the list.
+  Patterns for applications you do not use can be safely removed from
+  this list, and this can speed things up during output parsing. </p><p>
+  If the output of a line matches the error
+  pattern, then file name, line number and error
+  message are extracted from it; if not, the line is then optionally
+  matched against another regular expression to determine if it is a
+  warning.
+ </p><p>
+  If an error pattern specifies a filename of "$f", the current
+  buffer's path is used; otherwise, the filename is resolved relative to the
+  current directory.
+ </p><p>
+  It is also possible to specify an "extra" regular expression,
+  against which lines subsequent to an error or warning are checked and added to the
+  message if there is a match.
+  This can be used to handle compilers which
+  produce compiler errors and warnings that span several lines.
+  For this pattern, the string to be appended to the error message must be in a back-reference (round braces).
+   </p><p>
+  Parsed error and warning messages are shown in the
+  <span class="guimenu"><strong>Plugins</strong></span>&gt;<span class="guisubmenu"><strong>Error
+  List</strong></span>&gt;<span class="guimenuitem"><strong>Error List</strong></span> window; this
+  window is used to display errors from several other plugins as well.
+ </p><p>
+  The Console plugin includes error patterns that match errors produced
+  by the following tools:
+ </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>Generic errors matching the following format, produced by many
+  tools, including javac and gcc:</p><pre class="screen">
+      <em class="replaceable"><code>file</code></em>:<em class="replaceable"><code>line</code></em>:<em class="replaceable"><code>message</code></em>
+     </pre></li><li class="listitem"><p>Generic errors matching the so called
+  "Emacs" format:</p><pre class="screen">
+      <em class="replaceable"><code>file</code></em>:<em class="replaceable"><code>start line</code></em>:<em class="replaceable"><code>end line</code></em>:<em class="replaceable"><code>start column</code></em>:<em class="replaceable"><code>end column</code></em>:<em class="replaceable"><code>message</code></em>
+     </pre><p>
+   The <span class="command"><strong>jikes</strong></span> Java compiler will produce errors in this
+   form if given if the <span class="command"><strong>+E</strong></span> command-line option. Otherwise,
+   it will output errors in a non-standard format which cannot be parsed by
+   the Console plugin.
+  </p></li><li class="listitem"><p>Errors output by the <span class="command"><strong>javac</strong></span> compiler
+  found in
+  Java 2 version 1.3 and later. Earlier versions are also supported, because
+  they output errors in the generic format documented above.</p></li><li class="listitem"><p> Errors produced by <span class="command"><strong>python</strong></span>. </p></li><li class="listitem"><p>Errors output by the <span class="command"><strong>javac</strong></span> compiler
+  when it is being run from the <span class="application">Ant</span> project build
+  tool.</p></li><li class="listitem"><p>Microsoft Visual C++ and Microsoft .Net compiler errors.
+  </p></li><li class="listitem"><p>Perl errors.</p></li><li class="listitem"><p>Errors output by the Jade and OpenJade document
+  generation tools.</p></li></ul></div><p>
+  Error patterns can be customized in the
+  <span class="guilabel"><strong>Console</strong></span>&gt;<span class="guilabel"><strong>Error Patterns</strong></span> pane
+  of the <span class="guimenuitem"><strong>Plugin Options</strong></span> dialog box; you should
+  familiarize yourself with regular expressions first, the syntax of which
+  is documented in the jEdit user's guide.
+ </p></div><div class="sect1" title="Changing directories"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="changing-dirs"></a>Changing directories</h2></div></div></div><p>
+ To change the current working directory, simply enter its name, as if you were
+ going to execute a command. Relative paths are resolved
+ automatically.
+</p><p>
+ The following system shell built-ins relate to the current working directory:
+</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+      <span class="command"><strong>pwd</strong></span> - prints the current working
+ directory. Note that unlike other built-ins, this one is not prefixed
+ with "%" for convenience and consistency with other command
+ lines.</p></li><li class="listitem"><p>
+      <span class="command"><strong>cd <em class="replaceable"><code>directory</code></em>
+      </strong></span>:
+ does the same thing as just entering
+ <span class="command"><strong><em class="replaceable"><code>directory</code></em>
+      </strong></span>.
+ </p></li><li class="listitem"><p>
+      <span class="command"><strong>-</strong></span> or <span class="command"><strong>cd -</strong></span>:
+ goes to the directory that was
+ current before this one.
+ </p></li><li class="listitem"><p>
+      <span class="command"><strong>%pushd [<span class="optional">newDir</span>] </strong></span> : pushes the current directory, and optionally changes to <code class="option">newDir</code>. </p></li><li class="listitem"><p>
+      <span class="command"><strong>%popd</strong></span>: sets the current working
+ directory to the one stored at the top of the directory stack, then
+ removes that entry from the stack.</p></li><li class="listitem"><p>
+      <span class="command"><strong>%dirstack</strong></span>: lists all directories
+ in the directory stack.</p></li></ul></div></div><div class="sect1" title="Process management"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="process-manage"></a>Process management</h2></div></div></div><p>
+  Each console window has an associated "foreground process";
+  output produced by the foreground process is shown in that console
+  window. Starting a new process while one is already running in the
+  foreground will terminate the existing process.
+ </p><p>
+  The <span class="command"><strong>%kill</strong></span> built-in can also be used to
+  terminate the currently running foreground process. Clicking the
+  <span class="guibutton"><strong>Stop</strong></span> button in the console window has the same
+  effect.
+ </p><p>
+  A process can be started in the "background" by adding
+  "&amp;" to the end of its command line. After a process is
+  started in the background, it continues running until it exits. Output is
+  not shown in the console window, and starting other processes has no effect on
+  already-running background processes.
+ </p><p>
+ Pressing <span class="keycap"><strong>Control</strong></span>+<span class="keycap"><strong>Z</strong></span>
+ detaches the foreground process. In the System shell, the process continues
+ running in the background, and no longer shows output in the console, which
+ is not very *nix-like, but oh well.
+</p></div><div class="sect1" title="Environment variables"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="env-vars"></a>Environment variables</h2></div></div></div><p>
+ When running on Unix and Windows NT/2000/XP, the system shell lets you access
+ and change
+ operating system-specific environment variables. On other systems, you can
+ define and use variables, but they are console-specific.
+</p><p>
+ To accommodate both Windows and Unix users, three forms of variable syntax are
+ supported by the system shell:
+</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+      <code class="varname">%<em class="replaceable"><code>name</code></em>%</code>
+     </p></li><li class="listitem"><p>
+      <code class="varname">$<em class="replaceable"><code>name</code></em>
+      </code>
+     </p></li><li class="listitem"><p>
+      <code class="varname">${<em class="replaceable"><code>name</code></em>}</code>
+     </p></li></ul></div><p>
+ The following variables are defined under all circumstances, independent
+ of operating system-specific environment variables being available or not:
+</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+      <code class="varname">${c}</code> - if the current buffer is a Java file,
+ the current buffer's fully qualified class name, including the package (if the
+ buffer contains a <strong class="userinput"><code>package</code></strong> statement).
+ </p></li><li class="listitem"><p>
+      <code class="varname">${d}</code> - the current buffer's directory.
+ </p></li><li class="listitem"><p>
+      <code class="varname">${f}</code> - the current buffer's path name.
+ </p></li><li class="listitem"><p>
+      <code class="varname">${n}</code> - the current buffer's name.
+ </p></li><li class="listitem"><p>
+      <code class="varname">${BROWSER_DIR}</code> - the current directory
+ displayed in the file system browser, or an empty string if the file system
+ browser is not visible.
+ </p></li><li class="listitem"><p>
+      <code class="varname">${JEDIT_HOME}</code> - the full path of the
+ directory where jEdit is installed.</p></li><li class="listitem"><p>
+      <code class="varname">${JEDIT_SETTINGS}</code> - the full path of the
+ jEdit settings directory.</p></li><li class="listitem"><p>
+      <code class="varname">${PKG}</code> - if the current buffer is a Java file,
+ the current buffer's package name (or if the
+ buffer doesn't contain a <strong class="userinput"><code>package</code></strong> statement, an empty
+ string).
+ </p></li><li class="listitem"><p>
+      <code class="varname">${PWD}</code> - the current working directory.
+ </p></li><li class="listitem"><p>
+      <code class="varname">${ROOT}</code> - the package root of the current
+ buffer. For example, if the current buffer's fully qualified class name is
+ <code class="classname">org.gjt.sp.jedit.jEdit</code> and it is contained in the
+ <code class="filename">/home/slava/jEdit/org/gjt/sp/jedit/</code> directory, this will
+ return <code class="filename">/home/slava/jEdit/</code>.
+ </p></li><li class="listitem"><p>
+      <code class="varname">~</code> - this is not a "variable"
+ per-se, and it is specified using a different syntax, but it makes sense to
+ mention it here.
+ It expands to the full path of the user's home directory.</p></li></ul></div><p>
+ The following system shell built-ins deal with environment variables:
+</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+      <span class="command"><strong>%env</strong></span>: prints a list of all environment
+ variables, excluding the dynamic ones documented above.</p></li><li class="listitem"><p>
+      <span class="command"><strong>%set <em class="replaceable"><code>name</code></em>
+       <em class="replaceable"><code>value</code></em>
+      </strong></span>: sets the value of the specified
+ environment variable. Note that if the desired value contains whitespace,
+ you will need to quote it, otherwise it will be treated as several
+ arguments.</p></li><li class="listitem"><p>
+      <span class="command"><strong>%unset <em class="replaceable"><code>name</code></em>
+      </strong></span>:
+ clears the value of the specified
+ environment variable.</p></li></ul></div><p>
+ To insert a "$" or "%" literally in the command
+ string, you can write "$$" and "%%".
+</p></div><div class="sect1" title="jEdit integration built-ins"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="jedit-builtins"></a>jEdit integration built-ins</h2></div></div></div><p>
+  A few system shell built-ins invoke jEdit features:
+ </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+      <span class="command"><strong>%browse
+  [-n|--new-window]
+  <em class="replaceable"><code>directory</code></em>
+      </strong></span>:
+  opens the specified directory in jEdit's file system browser. If
+  <span class="command"><strong>-n</strong></span> or <span class="command"><strong>--new-window</strong></span> is specified,
+  opens a new floating instance of the file system browser.
+  </p></li><li class="listitem"><p>
+      <span class="command"><strong>%edit <em class="replaceable"><code>files ...</code></em>
+      </strong></span>:
+  opens the specified files in jEdit.</p></li><li class="listitem"><p>
+      <span class="command"><strong>%run <em class="replaceable"><code>scripts ...</code></em>
+      </strong></span>:
+  runs the specified script files. You can run BeanShell scripts, or any script
+  type supported by an installed plugin (for example you can run Python scripts
+  if JythonInterpreter is installed).
+  </p></li></ul></div></div></div><div class="chapter" title=" The Console BeanShell "><div class="titlepage"><div><div><h2 class="title"><a name="bean-shell"></a>Chapter 5.  The Console BeanShell </h2></div></div></div><p> One of jEdit's best kept secrets is the interactive Console BeanShell, which provides a command line interface into the current running JVM, allowing you to inspect or invoke methods on objects in memory, or create instances of any class loaded in the JVM. This makes the Console BeanShell a powerful debugging tool for jEdit or plugin development.
+  </p><p> There are many predefined variables you can use from this shell. Be sure to check <code class="literal">jEdit's user guide - Writing Macros - Macro Basics - BeanShell Commands</code> for more details. </p></div><div class="chapter" title="Commando"><div class="titlepage"><div><div><h2 class="title"><a name="commando"></a>Chapter 6. Commando</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><ul><li><span class="sect1"><a href="#commando-toolbar">The Commando tool bar</a></span></li><li><span class="sect1"><a href="#commando-window">The Commando window</a></span></li><li><span class="sect1"><a href="#writing-commando">Writing Commando files</a></span><ul><li><span class="sect2"><a href="#id36079535">The UI element</a></span></li><li><span class="sect2"><a href="#id36080021">The COMMANDS element</a></span></li></ul></li></ul></div><p>
+ As mentioned previously, the <em class="firstterm">Commando</em> feature creates
+ graphical front-ends to command-line tools from XML files.
+</p><p>
+ Commando XML files are stored in two locations:
+</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>A few are stored in the <code class="filename">Console.jar</code>
+ itself.</p></li><li class="listitem"><p>User-specific commando files are loaded from the
+ <code class="filename">console/commando</code> subdirectory of the jEdit
+ settings directory.</p><p>
+  You can find out the location of the settings directory by entering
+  the following command in the system shell of the console window:
+ </p><pre class="programlisting">%echo ${JEDIT_SETTINGS}</pre><p>
+     <span class="guimenu"><strong>Plugins</strong></span>&gt;<span class="guisubmenu"><strong>Console</strong></span>&gt;<span class="guimenuitem"><strong>Rescan
+  Commando Directory</strong></span> should be called after files are added or
+  removed in the user-specific commando directory.
+ </p><p>
+     <span class="guimenu"><strong>Plugins</strong></span>&gt;<span class="guisubmenu"><strong>Console</strong></span>&gt;<span class="guimenuitem"><strong>Browse
+  Commando Directory</strong></span> opens the user-specific commando directory in
+  jEdit's file system browser.
+ </p></li></ul></div><p> <span class="guimenu"><strong>Plugins</strong></span> &gt; <span class="guisubmenu"><strong>Console</strong></span> &gt; <span class="guimenuitem"><strong>Commando</strong></span> displays the commando window. A menu item for each known commando file is also shown in the <span class="guimenu"><strong>Plugins</strong></span> &gt; <span class="guisubmenu"><strong>Console</strong></span> &gt; <span class="guisubmenu"><strong>Commands</strong></span> menu; invoking one of these menu items opens the Commando window with that commando file pre-selected.
+</p><div class="sect1" title="The Commando tool bar"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="commando-toolbar"></a>The Commando tool bar</h2></div></div></div><p>
+ The commando tool bar, which can be enabled in the
+ <span class="guilabel"><strong>Console</strong></span>&gt;<span class="guilabel"><strong>General</strong></span> pane of the
+ <span class="guimenuitem"><strong>Plugin Options</strong></span>
+ dialog box, has one button for each commando file. Clicking a button opens
+ the commando window for that file.
+</p><p> By right-clicking on the commando button, you can <span class="guimenuitem"><strong>Hide</strong></span>
+or <span class="guimenuitem"><strong>Customize</strong></span> it. </p><p> If you select <span class="guimenuitem"><strong>customize</strong></span>, the xml file will be opened into your current editor. If it's the first time you customized the button, and it was one of the default commandos from from inside the Console.jar, then the file will be copied from the jar into your user settings  <code class="literal">${JEDIT_SETTINGS}/console/commando/</code> directory. Subsequent times, it will just edit that file. </p><p> At this point, if you want to define a new commando (<code class="literal">cmake</code>, for example), just "save as" <code class="literal">cmake.xml</code>, and then select <span class="guimenuitem"><strong>Regen Dynamic Menus</strong></span>. </p><p> If you wish to un-hide buttons that are hidden, you can bring them back from <span class="guimenuitem"><strong>Plugin Options</strong></span> &gt; <span class="guimenuitem"><strong>Console</strong></span> &gt; <span class="guimenuitem"><strong>Toolbar Options</strong></span> pane. </p></div><div class="sect1" title="The Commando window"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="commando-window"></a>The Commando window</h2></div></div></div><p>
+ The commando window consists of a combo box for selecting a commando file,
+ and two tabs; the first contains GUI controls for specifying command-line
+ settings, the second shows the resulting command line (or command lines,
+ if the commando file defines more than one command to be run).
+</p><p>
+ Currently, settings specified in the commando window are remembered for
+ the duration of the current jEdit session. In the future, integration
+ with a project management plugin will be provided, for specifying command
+ line tool settings on a per-project basis.
+</p><p>
+ One you have configured the necessary settings, click <span class="guibutton"><strong>OK</strong></span>
+ to run each command specified in the commando file in turn. Most commando
+ files will only specify one command to run.
+</p><p>
+ Some commands will
+ be executed automatically, others will ask for confirmation; if a command
+ fails, you will always be asked for confirmation before running the next one,
+ no matter what. Some commando files, such as the <code class="filename">diff</code>
+ file included with the Console plugin, show their output in a new buffer,
+ rather than the console window.
+</p></div><div class="sect1" title="Writing Commando files"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="writing-commando"></a>Writing Commando files</h2></div></div></div><p>
+ Commando files are written in XML. A commando file must have a certain
+ preamble, along with a root element:
+</p><pre class="programlisting">&lt;?xml version="1.0"?&gt;
+
+&lt;!DOCTYPE COMMANDO SYSTEM "commando.dtd"&gt;
+
+&lt;COMMANDO&gt;
+    ...
+&lt;/COMMANDO&gt;</pre><div class="sect2" title="The UI element"><div class="titlepage"><div><div><h3 class="title"><a name="id36079535"></a>The UI element</h3></div></div></div><p>
+ Each command file must define one and only one
+ <code class="literal">UI</code> element inside the
+ <code class="literal">COMMANDO</code> element. The <code class="literal">UI</code> element
+ does not have any defined attributes.
+</p><p>
+ Each child element of the <code class="literal">UI</code> element except for the
+ <code class="literal">CAPTION</code> element defines a user interface control, and
+ supports the following attributes:
+</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+       <code class="literal">LABEL</code> - the control's caption. This
+attribute is required.</p></li><li class="listitem"><p>
+       <code class="literal">VARNAME</code> - the value entered by the user
+will be stored in the BeanShell variable with this name. This attribute
+is required.</p></li><li class="listitem"><p>
+       <code class="literal">DEFAULT</code> - for specifying the default value
+literally.
+</p></li><li class="listitem"><p>
+       <code class="literal">EVAL</code> - for specifying the default value
+to be the result of evaluating this BeanShell script.
+Note that only one of
+<code class="literal">DEFAULT</code> and <code class="literal">EVAL</code> should be
+specified.</p></li></ul></div><div class="sect3" title="The CAPTION element"><div class="titlepage"><div><div><h4 class="title"><a name="id36079754"></a>The CAPTION element</h4></div></div></div><p>
+ A <code class="literal">CAPTION</code> element adds a labeled box to the commando panel
+ that other UI elements can be added to.
+ It must be placed inside the
+ <code class="literal">UI</code> element. The only defined attribute is
+ <code class="literal">LABEL</code>. It is required.
+</p><p>
+ Any UI control can be placed inside the <code class="literal">CAPTION</code>
+ element.
+</p><p>
+ Here is an example of the <code class="literal">CAPTION</code> element:
+</p><pre class="programlisting">&lt;CAPTION LABEL="File specification"&gt;
+
+  &lt;ENTRY LABEL="Original file" VARNAME="from"
+   EVAL="buffer.getPath() + '~'" /&gt;
+  &lt;ENTRY LABEL="Changed file" VARNAME="to"
+   EVAL="buffer.getPath()" /&gt;
+
+  &lt;TOGGLE LABEL="Recursively compare directories"
+   VARNAME="recursive" /&gt;
+  &lt;ENTRY LABEL="Ignore files regexp" VARNAME="ignore" /&gt;
+
+&lt;/CAPTION&gt;</pre></div><div class="sect3" title="The CHOICE element"><div class="titlepage"><div><div><h4 class="title"><a name="id36079791"></a>The CHOICE element</h4></div></div></div><p>
+ A <code class="literal">CHOICE</code> element adds a combo box to the commando panel.
+ It must be placed inside the
+ <code class="literal">UI</code> element.
+</p><p>
+ Possible options are specified in <code class="literal">OPTION</code> elements
+ inside the <code class="literal">CHOICE</code> element. Here is an example
+ <code class="literal">CHOICE</code> element:
+</p><pre class="programlisting">&lt;CHOICE LABEL="Output format" VARNAME="output"
+   DEFAULT="unified"&gt;
+   &lt;OPTION LABEL="Brief" VALUE="brief" /&gt;
+   &lt;OPTION LABEL="Context" VALUE="context" /&gt;
+   &lt;OPTION LABEL="ED script" VALUE="ed" /&gt;
+   &lt;OPTION LABEL="RCS" VALUE="rcs" /&gt;
+   &lt;OPTION LABEL="Side by side" VALUE="sideBySide" /&gt;
+   &lt;OPTION LABEL="Unified" VALUE="unified" /&gt;
+&lt;/CHOICE&gt;</pre></div><div class="sect3" title="The DIR_ENTRY element"><div class="titlepage"><div><div><h4 class="title"><a name="id36079829"></a>The DIR_ENTRY element</h4></div></div></div><p>
+ A <code class="literal">DIR_ENTRY</code> element adds a text field with a button on the
+ right for displaying a directory chooser dialog. This dialog lets you pick a
+ directory,
+ then inserts the directory's full path in the text field.
+</p><p>
+ Here is an example <code class="literal">DIR_ENTRY</code> element:
+</p><pre class="programlisting">&lt;DIR_ENTRY LABEL="Output directory" VARNAME="output" /&gt;</pre></div><div class="sect3" title="The ENTRY element"><div class="titlepage"><div><div><h4 class="title"><a name="id36079858"></a>The ENTRY element</h4></div></div></div><p>
+ An <code class="literal">ENTRY</code> element adds a text field to the commando panel.
+ It must be placed inside the
+ <code class="literal">UI</code> element.
+</p><p>
+ Here is an example <code class="literal">ENTRY</code> element:
+</p><pre class="programlisting">&lt;ENTRY LABEL="File name" VARNAME="file"
+   EVAL="buffer.getPath()" /&gt;</pre></div><div class="sect3" title="The FILE_ENTRY element"><div class="titlepage"><div><div><h4 class="title"><a name="id36079886"></a>The FILE_ENTRY element</h4></div></div></div><p>
+ A <code class="literal">FILE_ENTRY</code> element adds a text field with a button on the
+ right for displaying a file chooser dialog. This dialog lets you pick a file,
+ then inserts the file's full path in the text field.
+</p><p>
+ Here is an example <code class="literal">FILE_ENTRY</code> element:
+</p><pre class="programlisting">&lt;FILE_ENTRY LABEL="Source file" VARNAME="source" /&gt;</pre></div><div class="sect3" title="The LONG_ENTRY element"><div class="titlepage"><div><div><h4 class="title"><a name="id36079912"></a>The LONG_ENTRY element</h4></div></div></div><p>
+ A <code class="literal">LONG_ENTRY</code> element adds a multiple line text area
+ to the commando panel.
+ It must be placed inside the
+ <code class="literal">UI</code> element.
+</p><p>
+ Here is an example <code class="literal">LONG_ENTRY</code> element:
+</p><pre class="programlisting">&lt;LONG_ENTRY LABEL="Comments" VARNAME="comments" /&gt;</pre></div><div class="sect3" title="The TOGGLE element"><div class="titlepage"><div><div><h4 class="title"><a name="id36079940"></a>The TOGGLE element</h4></div></div></div><p>
+ A <code class="literal">TOGGLE</code> element adds a check box to the commando panel.
+ It must be placed inside the
+ <code class="literal">UI</code> element.
+</p><p>
+ Here is an example <code class="literal">TOGGLE</code> element:
+</p><pre class="programlisting">&lt;TOGGLE LABEL="Ignore case" VARNAME="ignoreCase" /&gt;</pre></div><div class="sect3" title="The TOGGLE_ENTRY element"><div class="titlepage"><div><div><h4 class="title"><a name="id36079968"></a>The TOGGLE_ENTRY element</h4></div></div></div><p>
+ A <code class="literal">TOGGLE_ENTRY</code> element adds a text field with a
+ check box to the commando panel. Toggling the check box enables and disables
+ the text field.
+ It must be placed inside the
+ <code class="literal">UI</code> element. Note that the text field's value is stored in
+ the variable named by the <code class="literal">VARNAME</code> attribute, and the toggle
+ state is stored in the variable with that name suffixed with
+ <code class="literal">Toggle</code>. For example, if <code class="literal">VARNAME</code> is
+ <code class="literal">path</code> then the variables <code class="literal">path</code> and
+ <code class="literal">pathToggle</code> will be defined.
+</p><p>
+ Here is an example <code class="literal">TOGGLE_ENTRY</code> element:
+</p><pre class="programlisting">&lt;TOGGLE_ENTRY LABEL="Additional file" VARNAME="ignoreCase"
+    EVAL="buffer.getPath()"/&gt;</pre></div></div><div class="sect2" title="The COMMANDS element"><div class="titlepage"><div><div><h3 class="title"><a name="id36080021"></a>The COMMANDS element</h3></div></div></div><p>
+ The <code class="literal">COMMANDS</code> element must be contained in the
+ root <code class="literal">COMMANDO</code> element.
+</p><p>
+ One or more <code class="literal">COMMAND</code> elements can be defined inside the
+ <code class="literal">COMMANDS</code> element. Each <code class="literal">COMMAND</code> element
+ defines a command to execute. The following attributes are supported:
+</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+       <code class="literal">CONFIRM</code> - Of "TRUE", a
+confirmation dialog will be shown before running this command.</p></li><li class="listitem"><p>
+       <code class="literal">SHELL</code> - The name of the shell to
+run this command in.</p></li><li class="listitem"><p>
+       <code class="literal">TO_BUFFER</code> - If "TRUE", the command output
+		will be shown in a new buffer.</p></li><li class="listitem"><p>
+       <code class="literal">BUFFER_MODE</code> - If <code class="literal">TO_BUFFER</code>
+is "TRUE", this parameter can be used to specify the edit mode
+of the new buffer. The default value is "text".</p></li></ul></div><p>
+ A BeanShell script placed between the start and end <code class="literal">COMMAND</code>
+ tags should construct a command line using the values of the variables set
+ by the UI controls. The final command line should be returned by the
+ last statement in the script.
+</p><p>
+ Here is an example <code class="literal">COMMAND</code> element:
+</p><pre class="programlisting">&lt;COMMAND CONFIRM="FALSE" SHELL="System"&gt;
+    buf = new StringBuffer("jmk");
+
+    if(!makefile.equals(""))
+    {
+     buf.append(" -f \"");
+     buf.append(makefile);
+     buf.append('"');
+    }
+
+    if(!targets.equals(""))
+    {
+     buf.append(' ');
+     buf.append(targets);
+    }
+
+    if(debug)
+     buf.append(" -d");
+
+    if(norun)
+     buf.append(" -n");
+
+    if(output.equals("awt"))
+     buf.append(" -w");
+
+    if(output.equals("swing"))
+     buf.append(" -s");
+
+    // return value
+    buf;
+&lt;/COMMAND&gt;</pre></div></div></div><div class="chapter" title="Invoking compilers and interpreters"><div class="titlepage"><div><div><h2 class="title"><a name="compile-run"></a>Chapter 7. Invoking compilers and interpreters</h2></div></div></div><p>
+   <span class="guimenu"><strong>Plugins</strong></span>&gt;<span class="guisubmenu"><strong>Console</strong></span>&gt;<span class="guimenuitem"><strong>Compile
+ Current Buffer</strong></span> opens a mode-specific commando that should invoke a
+ compiler suitable for compiling the current buffer.
+</p><p>
+   <span class="guimenu"><strong>Plugins</strong></span>&gt;<span class="guisubmenu"><strong>Console</strong></span>&gt;<span class="guimenuitem"><strong>Run
+ Current Buffer</strong></span> opens a mode-specific commando that should invoke
+ an interpreter suitable for running the current buffer.
+</p><p>
+ Commandos can be associated with edit modes in the
+ <span class="guilabel"><strong>Console</strong></span>&gt;<span class="guilabel"><strong>Compile &amp; Run</strong></span> pane of
+ the <span class="guimenuitem"><strong>Plugin Options</strong></span> dialog box.
+</p></div><div class="chapter" title="Macros and the Console plugin"><div class="titlepage"><div><div><h2 class="title"><a name="macros"></a>Chapter 8. Macros and the Console plugin</h2></div></div></div><p>
+ The Console plugin defines three BeanShell convenience methods that can
+ be called from macros:
+</p><div class="funcsynopsis"><table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table"><tr><td><code class="funcdef">void <b class="fsfunc">runCommandInConsole</b>
+    (</code></td><td>View <var class="pdparam">view</var>
+    , </td></tr><tr><td> </td><td>String <var class="pdparam">shell</var>
+    , </td></tr><tr><td> </td><td>String <var class="pdparam">command</var>
+    <code>)</code>;</td></tr></table><div class="funcprototype-spacer"> </div></div><p>
+   Runs <code class="varname">command</code> in the shell named <code class="varname">shell</code>.
+   Will open a console window if one is not already open.
+  </p><div class="funcsynopsis"><table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table"><tr><td><code class="funcdef">void <b class="fsfunc">runCommandToBuffer</b>
+    (</code></td><td>View <var class="pdparam">view</var>
+    , </td></tr><tr><td> </td><td>String <var class="pdparam">shell</var>
+    , </td></tr><tr><td> </td><td>String <var class="pdparam">command</var>
+    <code>)</code>;</td></tr></table><div class="funcprototype-spacer"> </div></div><p>
+   Runs <code class="varname">command</code> in the shell named <code class="varname">shell</code>,
+   placing the command's output in a new buffer.
+   Will open a console window if one is not already open.
+  </p><div class="funcsynopsis"><table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table"><tr><td><code class="funcdef">void <b class="fsfunc">runInSystemShell</b>
+    (</code></td><td>View <var class="pdparam">view</var>
+    , </td></tr><tr><td> </td><td>String <var class="pdparam">command</var>
+    <code>)</code>;</td></tr></table><div class="funcprototype-spacer"> </div></div><p>
+   Equivalent to calling:
+  </p><pre class="programlisting">runCommandInConsole(view,"System",command);</pre><div class="funcsynopsis"><table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table"><tr><td><code class="funcdef">void <b class="fsfunc">waitForConsole</b>
+    (</code></td><td>View <var class="pdparam">view</var>
+    <code>)</code>;</td></tr></table><div class="funcprototype-spacer"> </div></div><p>
+   Waits until the currently executing command finishes before returning.
+		</p><div class="funcsynopsis"><table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table"><tr><td><code class="funcdef">void <b class="fsfunc">clearConsole</b>
+    (</code></td><td>View <var class="pdparam">view</var>
+    <code>)</code>;</td></tr></table><div class="funcprototype-spacer"> </div></div><p>
+   Clear's the console's output area.
+		</p><div class="funcsynopsis"><table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table"><tr><td><code class="funcdef">void <b class="fsfunc">getenv</b>
+    (</code></td><td>String <var class="pdparam">name</var>
+    <code>)</code>;</td></tr></table><div class="funcprototype-spacer"> </div></div><p>
+   Returns the specified environment variable.
+		</p><div class="funcsynopsis"><table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table"><tr><td><code class="funcdef">void <b class="fsfunc">setenv</b>
+    (</code></td><td>String <var class="pdparam">name</var>
+    , </td></tr><tr><td> </td><td>String <var class="pdparam">value</var>
+    <code>)</code>;</td></tr></table><div class="funcprototype-spacer"> </div></div><p>
+   Sets the specified environment variable to a new value.
+		</p><p>
+ If a command is run from the console while macro recording is in progress,
+ a call to one of these methods is recorded automatically.
+</p></div><div class="chapter" title=" Using Console with cvs/svn "><div class="titlepage"><div><div><h2 class="title"><a name="cvssvn"></a>Chapter 9.  Using Console with cvs/svn </h2></div></div></div><p> When you commit via the command line versions of <code class="literal">cvs</code> or <code class="literal">svn</code>, the tool spawns an external editor for you to enter text with the commit log. The editor that is spawned can be specified by the <code class="literal">VISUAL</code> or <code class="literal">EDITOR</code> environment variables. When the editor starts, you are editing a temporary file. When the editor sub-process exits, the commit tool retrieves the temporary file's contents. </p><p> A batch file or shellscript that runs jEdit can be used as the <code class="literal">VISUAL</code> editor that is called by command line programs like <code class="literal">cvs</code> and <code class="literal">svn</code>, even when run from inside jEdit's Console plugin. Here are some command line options that you should consider passing jEdit when it is started by another program such as cvs/svn:
+ </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p> <code class="literal">-wait</code> - waits until the buffer is closed before allowing the spawning process to 'exit' - this way you don't have to exit the main jEdit process when you are ready to commit. </p></li><li class="listitem"><p> <code class="literal">-noplugins</code> - if this is a new view (jedit is not already running), don't load all the plugins. </p></li><li class="listitem"><p> <code class="literal">-norestore</code> - don't restore the previously open files. </p></li><li class="listitem"><p> <code class="literal">-newplainview</code> - open a new window (if jEdit is already running). Some people might prefer <code class="literal">-reuseview</code> here, depending on the expected behavior of your previous editor. </p></li></ul></div><p> So in summary, if your batch file includes these options, you use it as the <code class="literal">EDITOR</code> when you commit from the regular command line, or from jEdit's console, and cvs/svn will wait until you close the buffer before sending the log message and your changes to the repository.
+</p></div><div class="chapter" title="Extending the Console plugin"><div class="titlepage"><div><div><h2 class="title"><a name="extending"></a>Chapter 10. Extending the Console plugin</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><ul><li><span class="sect1"><a href="#specifying-dependencies">Specifying dependencies</a></span></li><li><span class="sect1"><a href="#registering-shells">Registering the plugin shells</a></span></li><li><span class="sect1"><a href="#shell-interface">The Shell interface</a></span></li><li><span class="sect1"><a href="#output-interface">The Output interface</a></span></li><li><span class="sect1"><a href="#console-methods">Useful methods in the Console class</a></span></li><li><span class="sect1"><a href="#custom-error-parsing">Custom shells and error parsing</a></span></li></ul></div><p>
+    To add a shell to the console, a plugin must specify that
+	it requires the Console plugin, and register a
+ 	<a class="ulink" href="javadoc/console/Shell.html" target="_top">Shell</a> implementation in the plugin's <code class="filename">services.xml</code> file.
+</p><div class="sect1" title="Specifying dependencies"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="specifying-dependencies"></a>Specifying dependencies</h2></div></div></div><p>
+  In order to give the user a helpful error message if the Console
+  plugin is not installed, your plugin should specify dependency properties.
+  If your plugin's core class is named <code class="classname">MyPlugin</code>, the
+  corresponding dependencies might look like so:
+ </p><pre class="programlisting">plugin.MyPlugin.depend.0=jedit 04.02.99.00
+plugin.MyPlugin.depend.2=plugin console.ConsolePlugin 4.2</pre><p>
+  Note that the current version of the Console plugin requires jEdit 4.2 final
+  or later, so your plugin should also require at least that jEdit version.
+  If a newer version of the Console plugin is available, you can
+  specify higher version numbers than in the example above. However, all the
+  API calls in this chapter are guaranteed to work with the above version,
+  so in most cases you shouldn't worry about it.
+ </p></div><div class="sect1" title="Registering the plugin shells"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="registering-shells"></a>Registering the plugin shells</h2></div></div></div><p>
+    <span class="emphasis"><em> (new to Jedit 4.2) </em></span>
+ To make the Console plugin aware of your plugin's shell,
+ define a <code class="literal">services.xml</code> file containing a
+ service element with these attributes: </p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p> class="<code class="literal">console.Shell</code>" </p></li><li class="listitem"><p> NAME=<span class="emphasis"><em>YourPlugin</em></span>
+     </p></li></ol></div><p> The element itself should contain BeanShell code which creates a new instance of your <code class="classname">Shell</code>-derived class. Here is an example of how the SshConsole plugin registers a shell with Console:
+ </p><pre class="programlisting">
+&lt;?xml version="1.0"?&gt;
+&lt;!DOCTYPE SERVICES SYSTEM "services.dtd"&gt;
+&lt;SERVICES&gt;
+    &lt;SERVICE CLASS="console.Shell" NAME="ssh"&gt;
+         new console.ssh.Shell();
+    &lt;/SERVICE&gt;
+ &lt;/SERVICES&gt;
+</pre></div><div class="sect1" title="The Shell interface"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="shell-interface"></a>The Shell interface</h2></div></div></div><p>
+    <a class="ulink" href="javadoc/console/Shell.html" target="_top">Shell</a> is
+ an abstract class.
+ It contains a constructor that takes one parameter, which is
+ the name of the shell to display in the console window and
+ various other places:
+</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><div class="funcsynopsis"><table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table"><tr><td><code class="funcdef">public <b class="fsfunc">Shell</b>
+       (</code></td><td>String <var class="pdparam">name</var>
+       <code>)</code>;</td></tr></table><div class="funcprototype-spacer"> </div></div></li></ul></div><p>
+   A singleton <code class="classname">Shell</code> instance, shared by all <code class="classname">View</code>s and <code class="classname">Console</code>s is created by the <code class="classname">Console</code> once at the plugin load-time, for each <code class="classname">Shell</code> service found.
+   Most of the Shell methods have a first parameter which provides the <code class="classname">Console</code> instance, to distinguish between
+   multiple consoles. This class defines the following abstract methods, which your shell must override:
+</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><div class="funcsynopsis"><table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table"><tr><td><code class="funcdef">public void <b class="fsfunc">printInfoMessage</b>
+       (</code></td><td>Console <var class="pdparam">console</var>
+       <code>)</code>;</td></tr></table><div class="funcprototype-spacer"> </div></div><p>
+   This method is invoked by the console when the user selects the shell in question. It should print a short informational message, outlining the main capabilities of the shell.
+  </p></li><li class="listitem"><div class="funcsynopsis"><table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table"><tr><td><code class="funcdef">public void <b class="fsfunc">execute</b>
+       (</code></td><td>Console <var class="pdparam">console</var>
+       , </td></tr><tr><td> </td><td>String <var class="pdparam">input</var>
+       , </td></tr><tr><td> </td><td>Output <var class="pdparam">output</var>
+       , </td></tr><tr><td> </td><td>Output <var class="pdparam">error</var>
+       , </td></tr><tr><td> </td><td>String <var class="pdparam">command</var>
+       <code>)</code>;</td></tr></table><div class="funcprototype-spacer"> </div></div><p>
+   The <code class="function">execute()</code> method is called when the user enters a command. The complete command line is passed in as one string;
+   how it is parsed is entirely up to you.
+    </p><p>
+   The <code class="varname">output</code> object provided is either an instance of <code class="classname">ShellState</code> or a special <code class="classname">BufferOutput</code> object if the user elected to have the command output go into a new buffer.
+  </p><p>
+   As a convention, fatal errors (for example, parse errors in shell commands) should be sent to the <em class="parameter"><code>error</code></em> stream.
+  </p></li><li class="listitem"><div class="funcsynopsis"><table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table"><tr><td><code class="funcdef">public void <b class="fsfunc">stop</b>
+       (</code></td><td>Console <var class="pdparam">console</var>
+       <code>)</code>;</td></tr></table><div class="funcprototype-spacer"> </div></div><p>
+   If your shell executes commands in a separate thread, this method should stop
+   the currently running thread, if any.
+  </p></li><li class="listitem"><div class="funcsynopsis"><table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table"><tr><td><code class="funcdef">public boolean <b class="fsfunc">waitFor</b>
+       (</code></td><td>Console <var class="pdparam">console</var>
+       <code>)</code>;</td></tr></table><div class="funcprototype-spacer"> </div></div><p>
+   This method should block until the currently running command has completed,
+   and return <code class="literal">true</code> if the command executed successfully,
+   <code class="literal">false</code> otherwise. If no command is currently running, it
+   should return the status of the most recently run command.
+  </p></li></ul></div></div><div class="sect1" title="The Output interface"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="output-interface"></a>The Output interface</h2></div></div></div><p>
+ The <code class="classname">Output</code> interface consists of the following three methods:
+</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><div class="funcsynopsis"><table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table"><tr><td><code class="funcdef">public void <b class="fsfunc">write</b>
+       (</code></td><td>Color <var class="pdparam">color</var>
+       , </td></tr><tr><td> </td><td>String <var class="pdparam">msg</var>
+       <code>)</code>;</td></tr></table><div class="funcprototype-spacer"> </div></div><p>
+   This method writes a string to the output instance in question. Note that not all outputs support color - those that don't just ignore the  <em class="parameter"><code>color</code></em> parameter.
+  </p></li><li class="listitem"><div class="funcsynopsis"><table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table"><tr><td><code class="funcdef">public void <b class="fsfunc">print</b>
+       (</code></td><td>Color <var class="pdparam">color</var>
+       , </td></tr><tr><td> </td><td>String <var class="pdparam">msg</var>
+       <code>)</code>;</td></tr></table><div class="funcprototype-spacer"> </div></div><p>
+   This method writes a string, followed by a newline.
+  </p></li><li class="listitem"><div class="funcsynopsis"><table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table"><tr><td><code class="funcdef">public void <b class="fsfunc">commandDone</b>
+       (</code></td><td><code>void)</code>;</td><td> </td></tr></table><div class="funcprototype-spacer"> </div></div><p>
+     Your shell should call this when a command has finished executing. The
+     console window's implementation of this method stops the little animation.
+     </p></li></ul></div><p>
+   In your own plugin, it is normally not necessary to extend or instantiate <code class="classname">Output</code>s. Normally, plugins just use the instance passed to <code class="function">Shell.exec()</code>. </p><h3><a name="id36080999"></a> Where does the Output come from? </h3><p> The <code class="classname">Console</code> maintains a <code class="varname">shellStateMap</code>, a 1:1 mapping of shell names to <code class="classname">Console.ShellState</code> instances.  <code class="classname">Console.ShellState</code> is a concrete instance of <code class="classname">Output</code> which stores the Console's scrollback buffer. This is what gets passed to <code class="function">exec()</code>. </p><p>
+   When you call <code class="function">console.setShell(String name)</code>, the <code class="varname">shellState</code> for that shell is automatically created and set. If you need an Output instance for a specific shell, from another part of your plugin, you can call <code class="function">console.getOutput()</code> immediately after <code class="function">console.setShell()</code>.
+   </p></div><div class="sect1" title="Useful methods in the Console class"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="console-methods"></a>Useful methods in the Console class</h2></div></div></div><p>
+ The following methods in the <code class="classname">Console</code> class can be used to obtain some useful default colors you can use in output:
+</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><div class="funcsynopsis"><table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table"><tr><td><code class="funcdef">public Color <b class="fsfunc">getErrorColor</b>
+       (</code></td><td><code>void)</code>;</td><td> </td></tr></table><div class="funcprototype-spacer"> </div></div></li><li class="listitem"><div class="funcsynopsis"><table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table"><tr><td><code class="funcdef">public Color <b class="fsfunc">getWarningColor</b>
+       (</code></td><td><code>void)</code>;</td><td> </td></tr></table><div class="funcprototype-spacer"> </div></div></li><li class="listitem"><div class="funcsynopsis"><table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0" class="funcprototype-table"><tr><td><code class="funcdef">public Color <b class="fsfunc">getInfoColor</b>
+       (</code></td><td><code>void)</code>;</td><td> </td></tr></table><div class="funcprototype-spacer"> </div></div></li></ul></div></div><div class="sect1" title="Custom shells and error parsing"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="custom-error-parsing"></a>Custom shells and error parsing</h2></div></div></div><p>
+ Most plugin shells will need to report compiler errors and such. To do this, you will first need to create and register an <code class="classname">ErrorSource</code>;
+ see the <span class="application">ErrorList</span> plugin documentation for details. You will also need to add the errors to the error source at some stage. There are two ways of doing this:
+</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>Manually, by having the shell check for appropriate error conditions, and add errors as necessary.</p></li><li class="listitem"><p> What is #2? </p></li></ul></div></div></div><div class="appendix" title="Change log"><div class="titlepage"><div><div><h2 class="title"><a name="changes"></a>Appendix A. Change log</h2></div></div></div><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p><a name="ver4.4.2"></a>
+    <span class="bold"><strong>Version 4.4.2</strong></span> Requires jEdit 4.3pre99, JDK 1.5, ErrorList 1.4, ProjectViewer 2.9 (optional). </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p> Un-customize now works even if no FSB is shown yet. </p></li><li class="listitem"><p> Do checkBufferStatus() in the event dispatch thread (# 2933468 - Dale Anson) </p></li><li class="listitem"><p> No longer uses objectfactory xml parser (Eric Le Lay # 2927830) </p></li><li class="listitem"><p> Fixed built-in <code class="literal">pwd</code> system shell command. </p></li></ul></div><p>
+    </p></li><li class="listitem"><p><a name="ver4.4.1"></a>
+    <span class="bold"><strong>Version 4.4.1</strong></span> Requires jEdit 4.3pre17, JDK 1.5, ErrorList 1.4, ProjectViewer 2.9 (optional). </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p> Patch #2893518 - un-synchronized getOutput() to avoid deadlocks (Damien Radtke) </p></li><li class="listitem"><p> Report errors for processes with only one multiline error, fixing regression introduced by 2783642 in Console 4.4. </p></li><li class="listitem"><p> Added an "uncustomize" context menu item for Commando Buttons that override same-named commando.xml files from the jar, to easily restore them to the previous state, as well as indicators via tooltip and color, that a button has been customized. </p></li></ul></div><p>
+    </p></li><li class="listitem"><p><a name="ver4.4"></a>
+    <span class="bold"><strong>Version 4.4</strong></span> Requires jEdit 4.3pre17, JDK 1.5, ErrorList 1.4, ProjectViewer 2.9 (optional). </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p> Updated to listen to ProjectViewer 2.9 project switch events. </p></li><li class="listitem"><p> Updated to use jEdit 4.2 EditBus registration technique (Shlomy Reinstein), for compatibility with MyDoggy Plugin. </p></li><li class="listitem"><p> System shell built-in cd changes drives as well as directories on windows. (Alan Ezust) </p></li><li class="listitem"><p> Console: Immediately report errors to ErrorList (Shlomy Reinstein - # 2783642) </p></li></ul></div><p>
+   </p></li><li class="listitem"><p><a name="ver4.3.8"></a>
+    <span class="bold"><strong>Version 4.3.8</strong></span> Requires jEdit 4.3pre13, JDK 1.5, ErrorList 1.4, ProjectViewer 2.1.3 (optional). </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p> Scrolls to bottom whenever dockable is activated. (Alan Ezust) </p></li><li class="listitem"><p> 1928738 Fix NPEs caused by patch #1859034 - k_satoda </p></li><li class="listitem"><p> Updated console.bsh macros for reloacted beanshell in pre12. </p></li><li class="listitem"><p> Option to append (instead of prepend) subshell extra path. (Alan Ezust) </p></li><li class="listitem"><p> Change to PV selected node no longer causes Console to show if it is not already showing. (Alan Ezust)
+      </p></li></ul></div><p> </p></li><li class="listitem"><p><a name="ver4.3.7"></a>
+    <span class="bold"><strong>Version 4.3.7</strong></span> Requires jEdit 4.3pre13, JDK 1.5, ErrorList 1.4, ProjectViewer 2.1.3 (optional). </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p> Rebuilt against pre13 for binary compatibility </p></li><li class="listitem"><p> getProjectRoot directory more robust from make.xml, ant.xml and javac.xml - doesn't care if you don't have ProjectViewer or an active project. </p></li></ul></div><p>
+  </p></li><li class="listitem"><p><a name="ver4.3.6"></a>
+    <span class="bold"><strong>Version 4.3.6</strong></span> Requires jEdit 4.3pre12, JDK 1.5, ErrorList 1.4, and ProjectViewer 2.1.3 (optional).  </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p> New option to remember current working directory from previous sessions (ezust) </p></li><li class="listitem"><p> fix bug in capture of extra line for error (1854413 - David Bernard) </p></li><li class="listitem"><p> Forward slashes no longer substituted and driveletters no longer prepended in arguments except when expanding completions on MS-Windows. (#185614 - k_satoda, ezust) </p></li><li class="listitem"><p> Subshell extra PATH works now (k_satoda - 1859034) </p></li></ul></div><p>
+  </p></li><li class="listitem"><p><a name="ver4.3.5"></a>
+    <span class="bold"><strong>Version 4.3.5</strong></span> Requires jEdit 4.3pre12, JDK 1.5, ErrorList 1.4, and ProjectViewer 2.1.3 (optional).  </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p> Updated for relocated beanshell package in 4.3pre12. </p></li><li class="listitem"><p> runCommandToBuffer() doesn't send command to buffer (1643269 - ezust) </p></li><li class="listitem"><p> waitForConsole(view) should work properly on *nix systems now. (k_satoda, ezust - #1698976) </p></li><li class="listitem"><p> <code class="literal">alias ant ant -emacs</code> to get rid of adornments when running inside System shell (ezust).</p></li><li class="listitem"><p> Improved <code class="literal">generic</code> extra line regexp - catches javac and gcc multilines better. Made #1 on list. (ezust).  </p></li><li class="listitem"><p> (windows only) - driveletters work in Console the way they do in <code class="literal">cmd.exe</code>, as change-directory shortcuts. Console keeps track of default directories for each drive, as well as the default drive for the current shell session. Also, / works as well as \ for path separators. (Alan Ezust - bug#1511941 ) </p></li><li class="listitem"><p> Small changes to make the SshConsole plugin work (ezust). </p></li></ul></div><p>
+	</p></li><li class="listitem"><p><a name="ver4.3.4"></a>
+    <span class="bold"><strong>Verison 4.3.4</strong></span> Requires jEdit 4.3pre11, JDK 1.5, ErrorList 1.4, and ProjectViewer 2.1.1 (optional).
+    </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p> New General Option: chdir VFS node select events. Listens to new VFSPathSelected EBMessage (jEdit 4.3pre11).
+    </p></li><li class="listitem"><p> Fixes to perl error pattern, and to the ErrorMatcher regex routine, to allow for partial line matches (#1764455 - Shlomy Reinstein). </p></li><li class="listitem"><p> ErrorPatternOptionPane buttons to add/remove/up/down error patterns work better now (#1715796 - Shlomy Reinstein). </p></li></ul></div><p>
+   </p></li><li class="listitem"><p><a name="ver4.3.3"></a>
+     <span class="bold"><strong>Version 4.3.3 </strong></span>
+     Requires jEdit 4.3pre7, JDK 1.5, ErrorList 1.3.5, and ProjectViewer 2.1.1 (optional)
+     </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p> 1727037, 1726365 applied, handling error lines in StreamThread better. (k_satoda) </p></li><li class="listitem"><p> 1700484 fixed, was not registering dynamic shortcuts on startup. </p></li><li class="listitem"><p> 1671430 cd to project root/node needs line break </p></li><li class="listitem"><p> Ctrl-P and Ctrl-N select through command history (ezust). </p></li><li class="listitem"><p> Paste in the panel moves caret to end of input before pasting (ezust). </p></li></ul></div><p>
+   </p></li><li class="listitem"><p><a name="ver4.3.2"></a>
+  <span class="bold"><strong>Version 4.3.2</strong></span>
+   Requires jEdit 4.3pre7, JDK 1.5, ErrorList 1.3.5, and
+   ProjectViewer 2.1.1 (optional)
+   </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p> (1665849) PV CD to selected node no longer requires system shell to be active. (Alan Ezust) </p></li><li class="listitem"><p> Buffered Console output is fixed, improved performance rendering command output. (Marcelo Vanzin)
+      </p></li><li class="listitem"><p> New option: Max console scrollback buffer size (Carmine Lucarelli)  </p></li></ul></div><p>
+   </p></li><li class="listitem"><p><a name="ver4.3.1"></a>
+       <span class="bold"><strong>Version 4.3.1</strong></span>
+  Requires jEdit 4.3pre7, JDK 1.5, ErrorList 1.3.5, and
+   ProjectViewer 2.1.1 (optional)
+   </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p> Process exited message
+   from shell command to buffer no longer ends up in buffer. </p></li><li class="listitem"><p>(#1630431) Typing in the consolepane when caret is not at bottom moves caret to end of document first. (Alan Ezust)
+    </p></li></ul></div><p>
+   </p></li><li class="listitem"><p><a name="ver4.3.0"></a>
+       <span class="bold"><strong>Version 4.3.0</strong></span>
+  Requires jEdit 4.3pre7, JDK 1.5, ErrorList 1.3.5, and
+   ProjectViewer 2.1.1 (optional)
+   </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p> New dynamic ActionSet (Plugin: Console - Shell Switchers) generated for switching to, or toggling the Console, combined with selecting a specific shell. In other words, now you can bind a specific keyboard shortcut to "Toggle Beanshell" and another for "Show Ant Shell", etc. (Alan Ezust)</p></li></ul></div><p>
+  </p></li><li class="listitem"><p><a name="ver4.2.6.5"></a>
+   <span class="bold"><strong>Version 4.2.6.5</strong></span>
+   Requires jEdit 4.2 final, JDK 1.5, ErrorList 1.3.5, and
+   ProjectViewer 2.1.1 (optional)
+   </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+        Bug# 1223288 - no longer buffering output of subprocesses. Some interactive programs work in Console again. (Christopher Plant)
+   </p></li><li class="listitem"><p>
+   Ctrl-Enter is now the same as "run command to buffer" </p></li></ul></div></li><li class="listitem"><p><a name="ver4.2.6.4"></a>
+     <span class="bold"><strong>Version 4.2.6.4</strong></span>
+  Requires jEdit 4.2 final, JDK 1.5, ErrorList 1.3.5, and
+   ProjectViewer 2.1.1 (optional) (Alan Ezust)
+  </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+        Added option to not show welcome message. </p></li><li class="listitem"><p>
+        File completion now expands ~ as the homedir. </p></li><li class="listitem"><p>
+        Ctrl-U deletes what you typed. </p></li><li class="listitem"><p> Bugfix with runInSystemShell - selects the correct Output now. </p></li></ul></div></li><li class="listitem"><p><a name="ver4.2.6.3"></a>
+     <span class="bold"><strong>Version 4.2.6.3</strong></span>
+  Requires jEdit 4.2 final, JDK 1.5, ErrorList 1.3.5, and
+   ProjectViewer 2.1.1 (optional)
+  </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p> Improved LaTeX commando. </p></li><li class="listitem"><p> Fixed bug # 1480991 related to printing exit codes after a subprocess exits. </p></li></ul></div></li><li class="listitem"><p><a name="ver4.2.6.2"></a>
+     <span class="bold"><strong>Version 4.2.6.2</strong></span>
+  Requires jEdit 4.2 final, JDK 1.5, ErrorList 1.3.5, and
+   ProjectViewer 2.1.1 (optional)
+   </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p> New console prefix modes: "osdefault" and "none". Both work now, and are documented. </p></li><li class="listitem"><p> For bash prefix mode, fixed some quote handling bugs. </p></li></ul></div></li><li class="listitem"><p><a name="ver4.2.6.1"></a>
+     <span class="bold"><strong>Version 4.2.6.1</strong></span>
+  Requires jEdit 4.2 final, JDK 1.5, ErrorList 1.3.5, and
+   ProjectViewer 2.1.1 (optional) (Alan Ezust)
+   </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+	  Improved <span class="command"><strong>make</strong></span> and <span class="command"><strong>ant</strong></span> commando buttons (They grab ProjectViewer's root dir).
+   </p></li><li class="listitem"><p>
+      Fixed *nix quoting/spacing/platform issues (1468934).
+      </p></li><li class="listitem"><p>
+      Fixed 1459562 - Console.waitFor() now works. </p></li><li class="listitem"><p>
+      Added checkboxes in General Option Pane: showExitStatus and mergeStreams. </p></li><li class="listitem"><p>
+      Added "none" option for shell prefix (which currently does not work).   </p></li></ul></div></li><li class="listitem"><p><a name="ver4.2.6"></a>
+     <span class="bold"><strong>Version 4.2.6</strong></span>
+  Requires jEdit 4.2 final, JDK 1.5, ErrorList 1.3.5, and
+   ProjectViewer 2.1.1 (optional)
+   </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+      Generic error pattern handles windows pathnames now.
+      </p></li><li class="listitem"><p> Improved/updated documentation. </p></li></ul></div><p>
+    </p></li><li class="listitem"><p><a name="ver4.2.5.2"></a>
+     <span class="bold"><strong>Version 4.2.5.2</strong></span>
+  Requires jEdit 4.2 final, JDK 1.5, ErrorList 1.3.5, and
+   ProjectViewer 2.1.1 (optional)
+   </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+	  Bugs fixed: 1185273, 1465602, 1450389. (Ezust)
+   </p></li><li class="listitem"><p>
+      Rewrote variable substitution code. (Ezust)
+   </p></li><li class="listitem"><p>
+	   Merging stdout/stderr of subprocesses is optional and works now. (Ezust)
+   </p></li><li class="listitem"><p>
+	   Rewrote the StreamThread class to use StreamReader.
+       This means that output and error parsing is faster now. (Marcello Vanzin) </p></li></ul></div><p>
+   </p></li><li class="listitem"><p><a name="ver4.2.5.1"></a>
+     <span class="bold"><strong>Version 4.2.5.1</strong></span>
+  Requires jEdit 4.2 final, JDK 1.5, ErrorList 1.3.5, and
+   ProjectViewer 2.1.1 (optional) (Alan Ezust)
+   </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+	  Bugs fixed: 1460349 1459481 1459460 1454080 1449325 1448809
+   </p></li><li class="listitem"><p>
+	  added informative label in <code class="classname">ErrorOptionPane</code> so people Test/Commit changes to error paths.
+   </p></li><li class="listitem"><p>
+   feature request 1202051 - now users can prepend directories to the <code class="envar">PATH</code> of child processes.
+   </p></li></ul></div><p>
+    </p></li><li class="listitem"><p><a name="ver4.2.5"></a>
+     <span class="bold"><strong>Version 4.2.5</strong></span>
+  Requires jEdit 4.2 final, JDK 1.5, ErrorList 1.3.5, and
+   ProjectViewer 2.1.1 (optional) </p><p>
+    Bugfixes, refactoring, code cleanup. (Alan Ezust)
+  </p></li><li class="listitem"><p><a name="ver4.2.4"></a>
+     <span class="bold"><strong>Version 4.2.4</strong></span>
+
+   Requires jEdit 4.2 final, JDK 1.5, ErrorList 1.3.5, and
+   ProjectViewer 2.1.1 (optional) (Alan Ezust) </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+     Closing one View does not remove toolbars from all other views.</p></li><li class="listitem"><p>  Un-broke some earlier plugin-breaking
+		  changes.
+	  </p></li><li class="listitem"><p>
+     Improved Perl error pattern bug# 1195354
+     </p></li></ul></div></li><li class="listitem"><p><a name="ver4.2.2"></a>
+     <span class="bold"><strong>Version 4.2.2</strong></span>
+   Requires jEdit 4.2 final, JDK 1.5, ErrorList 1.3.5,
+   ProjectViewer 2.1.1 (optional) (Alan Ezust)
+   </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+     Rewrote the Error Pattern dialog into a JPanel, embeddable in the
+     larger OptionPane. No more popping up of dialogs for editing an error
+     pattern. </p><p>
+     Now it is possible to enable/disable individual error matchers with
+		 a checkbox there. </p></li></ul></div></li><li class="listitem"><p><a name="ver4.2.1"></a>
+     <span class="bold"><strong>Version 4.2.1</strong></span>
+     Requires jEdit 4.2 final, ErrorList 1.3.5, and <span class="bold"><strong>JDK 1.5</strong></span>.
+     Optional: Projectviewer 2.1.0.92 (for listening to events) (Alan Ezust)
+   </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+     Rewrote command execution part to use the JDK 1.5
+     <code class="literal">ProcessBuilder</code> class. This made it possible to
+     merge <code class="literal">stdout</code> and <code class="literal">stderr</code>,
+     which means that the output of <code class="literal">make</code>, which
+     sends its "entering/leaving" messages to stdout, and its error
+     messages to stderr, can be merged into one stream for parsing. </p></li><li class="listitem"><p>
+     Applied encoding patch from jedit-plugin-bugs #1245860.
+     </p></li><li class="listitem"><p> Context menu on commando buttons lets you hide/customize the
+     built-in commands with ease. </p></li><li class="listitem"><p>New beanshell commands bound to system shell actions: chdir to
+     ProjectViewer root, and chdir to ProjectViewer current.
+     </p></li><li class="listitem"><p>Option to bind the above actions to new ProjectViewer
+     Events. </p></li><li class="listitem"><p> Console Preferences allow you to set a prefix, so you can
+     run each command in an alternate shell (not working yet). </p></li></ul></div><p>
+    </p></li><li class="listitem"><p><a name="ver4.2"></a>
+     <span class="bold"><strong>Version 4.2</strong></span>
+   Requires jEdit 4.2 final, JDK 1.4, and ErrorList 1.3.5 </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+      Possibility of testing regular expressions in the
+      Plugin Options - Console - Error Patterns. </p></li><li class="listitem"><p> Rewrote to use <code class="classname">java.util.Pattern</code>
+      instead of <code class="classname">gnu.regex.RE</code>. </p></li><li class="listitem"><p>
+      Possibility of selecting which Commando buttons are shown in the
+      toolbar.
+    </p></li><li class="listitem"><p>Added some more Commando buttons (make, ant) to choose from.  </p></li><li class="listitem"><p>Misc bugfixes  - Alan Ezust</p></li></ul></div></li><li class="listitem"><p><a name="ver4.1.2"></a>
+     <span class="bold"><strong>Version 4.1.2</strong></span>
+   requires jEdit 4.2final, JDK 1.4, and ErrorList 1.3.1.</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>Console caret color is now configurable (Justin Dieters).
+   </p></li></ul></div></li><li class="listitem"><p><a name="ver4.1.1"></a>
+     <span class="bold"><strong>Version 4.1.1</strong></span>
+   requires jEdit 4.2final and the ErrorList plugin 1.3.1.</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>Fixed race condition with command output to a buffer that
+   could result in a <code class="classname">NullPointerException</code>.
+   </p></li><li class="listitem"><p>Commando dialog fields are saved, as long as they do not
+   result from a computed evaluation (for example, path names are not saved
+   because they are computed from the current buffer's name).
+   </p></li><li class="listitem"><p>Pressing <span class="keycap"><strong>Control</strong></span>+<span class="keycap"><strong>Z</strong></span>
+   detaches the foreground process. The process continues running in the background, and no longer shows
+   output in the console.
+   </p></li></ul></div></li><li class="listitem"><p>
+     <span class="bold"><strong>Version 4.1</strong></span>
+   requires jEdit 4.2final and the ErrorList plugin 1.3.1.</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>Minor change to <code class="classname">EvalAction</code> for Factor.
+   </p></li><li class="listitem"><p>Invoking <code class="function">%clear</code> in the system shell would
+   print the prompt twice.
+   </p></li><li class="listitem"><p>Passing a path name that is not a directory to <code class="function">%cd</code>
+   now prints an error.
+   </p></li><li class="listitem"><p>If running a command caused the current shell to be changed, output would
+   still go to the old shell.
+   </p></li><li class="listitem"><p>The input history can be searched by holding down <span class="keycap"><strong>Shift</strong></span>
+   while pressing <span class="keycap"><strong>Up</strong></span> or <span class="keycap"><strong>Down</strong></span>.
+   </p></li><li class="listitem"><p>Error parsing and copying of text from the console
+   was broken on Windows, due to incorrect line terminator
+   handling.
+   </p></li><li class="listitem"><p>Automatically check for files being changed on disk after a command completes.
+   </p></li></ul></div></li><li class="listitem"><p>
+     <span class="bold"><strong>Version 4.0.1</strong></span>
+   requires jEdit 4.2final and the ErrorList plugin 1.3.1.</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>Generic error pattern was broken.
+   </p></li></ul></div></li><li class="listitem"><p>
+     <span class="bold"><strong>Version 4.0</strong></span>
+   requires jEdit 4.2final and the ErrorList plugin 1.3.1.</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>The separate input field is now gone; all input is done
+   in the console pane.
+   </p></li><li class="listitem"><p>The plugin can now send standard input to processes. Press
+   <span class="keycap"><strong>Control</strong></span>+<span class="keycap"><strong>D</strong></span> to send
+   an end-of-file.
+   </p></li><li class="listitem"><p>Unloading the Console plugin did not hide the Commando
+   tool bar.
+   </p></li><li class="listitem"><p>Console tool bar is now gone, since the console input field
+   component no longer exists.
+   </p></li><li class="listitem"><p>Fixed a minor flaw in the generic error pattern, add Python
+   error pattern (Ollie Rutherfurd).
+   </p></li><li class="listitem"><p>If an error was raised by the BeanShell, opening the Console
+   in subsequently-created views would fail because of a rogue variable that
+   was set in the global namespace.
+   </p></li></ul></div></li></ul></div></div></div></body></html>
