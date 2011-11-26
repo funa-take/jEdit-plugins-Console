@@ -22,14 +22,13 @@
 
 package console;
 
-import java.util.*;
 import org.gjt.sp.jedit.*;
 import org.gjt.sp.jedit.gui.DockableWindowManager;
 import org.gjt.sp.util.Log;
 import org.gjt.sp.util.StringList;
 
 
-
+// {{{ Shell class
 /**
  * <p>
  * Console has a single dockable window, which can contain multiple
@@ -62,7 +61,7 @@ import org.gjt.sp.util.StringList;
 </p>
 <p>
  * @author Slava Pestov
- * @version $Id: Shell.java 17644 2010-04-15 20:16:17Z ezust $
+ * @version $Id: Shell.java 18977 2010-11-16 21:08:53Z ezust $
  */
 public abstract class Shell
 {
@@ -80,7 +79,7 @@ public abstract class Shell
 		this.name = name;
 	} //}}}
 
-	// {{{ Member functions
+	//{{{ Member functions
 
 	//{{{ getShellNames() method
 	/**
@@ -110,7 +109,6 @@ public abstract class Shell
 		// new API
 		return (Shell)ServiceManager.getService(SERVICE,name);
 	} //}}}
-
 	
 	//{{{ openConsole() method
 	/**
@@ -239,7 +237,6 @@ public abstract class Shell
 		return null;
 	} //}}}
 
-
 	//{{{ getName() method
 	/**
 	 * Returns the name of the shell.
@@ -257,7 +254,7 @@ public abstract class Shell
 	{
 		return name;
 	} //}}}
-	// }}}
+	// }}} Member functions
 
 	// {{{ Inner classes
 	// {{{ ShellAction class
@@ -276,7 +273,6 @@ public abstract class Shell
 			c.setShell(shellName);
 		}
 	}// }}}
-
 	// {{{ ToggleAction class
 	/** A ToggleAction is a ShellAction which also toggles the
 	    visibility of the Console. 
@@ -328,7 +324,7 @@ public abstract class Shell
 			super.invoke(view);
 		}
 	} // }}}
-	//{{{ CompletionInfo class
+	// {{{ CompletionInfo class
 	public static class CompletionInfo
 	{
 		// remove from offset to command.length()
@@ -337,5 +333,5 @@ public abstract class Shell
 		// possible values to insert
 		public String[] completions;
 	} //}}}
-	// }}}
+	// }}} Inner classes
 } // }}}

@@ -29,7 +29,7 @@ import org.gjt.sp.util.StringList;
  * When SystemShell executes something, the process itself is started indirectly by
  * ProcessRunner.exec().
  * @author 1999, 2005 Slava Pestov
- * @author 2006, 2007 Alan Ezust
+ * @author 2006, 2009 Alan Ezust
  */
 // {{{ class SystemShell
 public class SystemShell extends Shell
@@ -138,7 +138,7 @@ public class SystemShell extends Shell
 		// {{{ executeBuiltIn() method
 
 	public void executeBuiltIn(Console console, Output output, Output error, String command,
-		Vector args)
+		Vector<String> args)
 	{
 		SystemShellBuiltIn builtIn = (SystemShellBuiltIn) commands.get(command);
 		if (builtIn == null)
@@ -573,6 +573,8 @@ public class SystemShell extends Shell
 		if (view == null)
 			return variables.get(varName);
 
+		// ick, I don't like this at all... multiple consoles/view?
+		ConsoleState cs = getConsoleState(ConsolePlugin.getConsole(view));
 		String expansion;
 
 		// Expand some special variables
@@ -599,6 +601,9 @@ public class SystemShell extends Shell
 		}
 		else if (varName.equals("f"))
 			expansion = buffer.getPath();
+		else if (varName.equalsIgnoreCase("pwd")) {
+			expansion = cs.currentDirectory;
+		}
 		else if (varName.equals("n"))
 			expansion = buffer.getName();
 		else if (varName.equals("c"))
@@ -728,6 +733,7 @@ public class SystemShell extends Shell
 		aliases.put("pwd", "%printwd");
 		aliases.put("aliases", "%aliases");
 		aliases.put("alias", "%alias");
+		aliases.put("ver", "%version");
 		
 		aliases.put("-", "%cd -");
 
@@ -770,12 +776,13 @@ public class SystemShell extends Shell
 		variables.put("TERM", "dumb");
 
 		// load variables from properties
-		/*
-		 * String varname; i = 0; while((varname =
-		 * jEdit.getProperty("console.shell.variable." + i)) != null) {
-		 * variables.put(varname,jEdit.getProperty("console.shell.variable." +
-		 * i + ".value")); i++; }
-		 */
+		
+		 String varname; 
+		 int i = 0; 
+		 while((varname = jEdit.getProperty("console.shell.variable." + i)) != null) {
+		     variables.put(varname, jEdit.getProperty("console.shell.variable." + i + ".value")); i++; 
+		 }
+		 
 	} // }}}
 
 	// {{{ parse() method
@@ -949,7 +956,7 @@ public class SystemShell extends Shell
 	} // }}}
 
 	// {{{ getCommandCompletions() method
-	private List getCommandCompletions(View view, String currentDirName, String command)
+	private List<String> getCommandCompletions(View view, String currentDirName, String command)
 	{
 		StringList list = new StringList();
 
@@ -1165,8 +1172,7 @@ public class SystemShell extends Shell
 				}
 				catch (IOException ioe)
 				{
-					Log.log (Log.ERROR, this, "setCurrentDirectory()", ioe);
-					
+					Log.log (Log.ERROR, this, "setCurrentDirectory()", ioe);					
 				}
 			}
 		} // }}}

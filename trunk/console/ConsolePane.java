@@ -1,24 +1,24 @@
 /*
-* ConsolePane.java - The console input/output pane
-* :tabSize=8:indentSize=8:noTabs=false:
-* :folding=explicit:collapseFolds=1:
-*
-* Copyright (C) 2004 Slava Pestov
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * ConsolePane.java - The console input/output pane
+ * :tabSize=8:indentSize=8:noTabs=false:
+ * :folding=explicit:collapseFolds=1:
+ *
+ * Copyright (C) 2004 Slava Pestov
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
 package console;
 
@@ -34,19 +34,19 @@ public class ConsolePane extends JTextPane
 {
 	// {{{ Members
 	public static final String InputStart = "InputStart";
-	
+
 	public static final Object Input = new Object();
-	
+
 	public static final Object Actions = new Object();
-	
+
 	private static final Cursor MoveCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
-	
+
 	private static final Cursor DefaultCursor = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR);
-	
+
 	private EventListenerList listenerList;
-	
+
 	private ConsoleHistoryText history;
-	
+
 	transient private DocumentHandler documentHandler;
 	// }}}
 	
@@ -57,38 +57,33 @@ public class ConsolePane extends JTextPane
 		MouseHandler mouse = new MouseHandler();
 		addMouseListener(mouse);
 		addMouseMotionListener(mouse);
-		
+
 		history = new ConsoleHistoryText(this);
-		
+
 		listenerList = new EventListenerList();
-		
+
 		ActionMap actionMap = getActionMap();
 		InputMap inputMap = getInputMap();
-		
+
 		/* Press enter to evaluate the input */
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), new EnterAction());
-		
+
 		/* Press backspace to stop backspacing over the prompt */
 		inputMap.put(KeyStroke.getKeyStroke('\b'), new BackspaceAction());
-		
+
 		/* Press C+u to delete what you typed */
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_U,
 			InputEvent.CTRL_MASK),
 			new DeleteInputAction());
-		
+
 		
 		/* Press home to move to start of input area */
-		// Funa edit
-		// inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0), new HomeAction());
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0), new HomeAction(actionMap.get("caret-begin-line")));
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0), new HomeAction());
 		
 		
-		// Funa edit
-		// inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, InputEvent.SHIFT_MASK),
-		// new SelectHomeAction());
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, InputEvent.SHIFT_MASK),
-			new SelectHomeAction(actionMap.get("selection-begin-line")));
-		
+			new SelectHomeAction());
+
 		/* Press Up/Down to access history */
 		
 		HistoryUpAction hup =  new HistoryUpAction(actionMap.get("caret-up"));
@@ -104,18 +99,18 @@ public class ConsolePane extends JTextPane
 		/* Press S+Up/Down to select history */
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.SHIFT_MASK),
 			new SearchUpAction(actionMap.get("selection-up")));
-		
+
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.SHIFT_MASK),
 			new SearchDownAction(actionMap.get("selection-down")));
-		
+
 		/* Workaround */
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), new DummyAction());
-		
+
 		documentHandler = new DocumentHandler();
 		setDocument(getDocument());
-		
+
 	} // }}}
-	
+
 	// {{{ paste()
 	/** Overridden to avoid pasting in the output of the Console itself. */
 	public void paste() {
@@ -133,46 +128,46 @@ public class ConsolePane extends JTextPane
 	{
 		if (documentHandler != null && getDocument() != null)
 			getDocument().removeDocumentListener(documentHandler);
-		
+
 		super.setDocument(doc);
 		doc.addDocumentListener(documentHandler);
 	} // }}}
-	
+
 	// {{{ getHistoryModel() method
 	public HistoryModel getHistoryModel()
 	{
 		return history.getModel();
 	} // }}}
-	
+
 	// {{{ setHistoryModel() method
 	public void setHistoryModel(String name)
 	{
 		history.setModel(name);
 	} // }}}
-	
+
 	// {{{ setHistoryIndex() method
 	public void setHistoryIndex(int index)
 	{
 		history.setIndex(index);
 	} // }}}
-	
+
 	// {{{ addActionListener() method
 	public void addActionListener(ActionListener l)
 	{
 		listenerList.add(ActionListener.class, l);
 	} // }}}
-	
+
 	// {{{ removeActionListener() method
 	public void removeActionListener(ActionListener l)
 	{
 		listenerList.remove(ActionListener.class, l);
 	} // }}}
-	
+
 	// {{{ fireActionEvent() method
 	public void fireActionEvent(String code)
 	{
 		ActionEvent evt = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, code);
-		
+
 		Object[] listeners = listenerList.getListenerList();
 		for (int i = 0; i < listeners.length; i++)
 		{
@@ -183,7 +178,7 @@ public class ConsolePane extends JTextPane
 			}
 		}
 	} // }}}
-	
+
 	// {{{ getInput() method
 	public String getInput()
 	{
@@ -203,7 +198,7 @@ public class ConsolePane extends JTextPane
 			throw new RuntimeException(e);
 		}
 	} // }}}
-	
+
 	// {{{ setInput() method
 	public void setInput(String line)
 	{
@@ -219,7 +214,7 @@ public class ConsolePane extends JTextPane
 			throw new RuntimeException(e);
 		}
 	} // }}}
-	
+
 	// {{{ getInputStart() method
 	public int getInputStart()
 	{
@@ -229,17 +224,17 @@ public class ConsolePane extends JTextPane
 		if (i == null) return 0;
 		return i.intValue();
 		/*
-		* return ((Integer)getDocument().getProperty(InputStart))
-		* .intValue();
-		*/
+		 * return ((Integer)getDocument().getProperty(InputStart))
+		 * .intValue();
+		 */
 	} // }}}
-	
+
 	// {{{ setInputStart() method
 	public void setInputStart(int cmdStart)
 	{
 		getDocument().putProperty(InputStart, Integer.valueOf(cmdStart));
 	} // }}}
-	
+
 	// {{{ getPartialInput() method
 	public String getPartialInput()
 	{
@@ -253,13 +248,13 @@ public class ConsolePane extends JTextPane
 			throw new RuntimeException(e);
 		}
 	} // }}}
-	
+
 	// {{{ eval() method
 	public void eval(String eval)
 	{
 		if (eval == null)
 			return;
-		
+
 		try
 		{
 			StyledDocument doc = (StyledDocument) getDocument();
@@ -270,53 +265,40 @@ public class ConsolePane extends JTextPane
 		{
 			ble.printStackTrace();
 		}
-		
+
 		fireActionEvent(eval);
 	} // }}}
-	
+
 	// {{{ colorAttributes() method
 	public static AttributeSet colorAttributes(Color color)
 	{
 		SimpleAttributeSet style = new SimpleAttributeSet();
-		
+
 		if (color != null)
 			style.addAttribute(StyleConstants.Foreground, color);
 		/*
-		* else { style.addAttribute(StyleConstants.Foreground,
-		* getForeground()); }
-		*/
+		 * else { style.addAttribute(StyleConstants.Foreground,
+		 * getForeground()); }
+		 */
 		return style;
 	} // }}}
-	
+
 	// {{{ processKeyEvent method
 	@Override
 	protected void processKeyEvent(KeyEvent e)
 	{
-		// Funa edit
-		if (ClassLoader.getSystemResource("org/gjt/sp/jedit/gui/UserKey.class")!=null){
-			org.gjt.sp.jedit.gui.UserKey.consume(e, 
-				org.gjt.sp.jedit.gui.UserKey.ALLOW_CTRL | org.gjt.sp.jedit.gui.UserKey.ALLOW_SHIFT,
-				org.gjt.sp.jedit.gui.UserKey.ALLOW_CTRL | org.gjt.sp.jedit.gui.UserKey.ALLOW_SHIFT,
-				org.gjt.sp.jedit.gui.UserKey.ALLOW_CTRL | org.gjt.sp.jedit.gui.UserKey.ALLOW_SHIFT,
-				org.gjt.sp.jedit.gui.UserKey.ALLOW_CTRL | org.gjt.sp.jedit.gui.UserKey.ALLOW_SHIFT,
-				true);
-			if (e.isConsumed()){
-				return;
-			}
-		}
 		int endpos = getDocument().getLength();
 		int startpos = getInputStart();
 		
-		// Funa edit
-		if (!e.isAltDown() && e.getID() == KeyEvent.KEY_TYPED && getCaretPosition() < startpos) { 
+		if (e.getID() == KeyEvent.KEY_TYPED && getCaretPosition() < startpos) 
 			setCaretPosition(endpos);			
-		}			
+		
 		super.processKeyEvent(e);
 	} // }}}
 	
 	// {{{ Private members
-	
-	
+
+
 	// {{{ getAttributes() method
 	private AttributeSet getAttributes(int pos)
 	{
@@ -324,7 +306,7 @@ public class ConsolePane extends JTextPane
 		Element e = doc.getCharacterElement(pos);
 		return e.getAttributes();
 	} // }}}
-	
+
 	// {{{ getActions() method
 	private Object[] getActions(int pos)
 	{
@@ -334,32 +316,32 @@ public class ConsolePane extends JTextPane
 		else
 			return (Object[]) a.getAttribute(Actions);
 	} // }}}
-	
+
 	// {{{ clickLink() method
 	private void clickLink(int pos)
 	{
 		Object[] actions = getActions(pos);
 		if (actions == null || actions.length == 0)
 			return;
-		
+
 		if (actions.length == 0)
 		{
 			((Action) actions[0]).actionPerformed(new ActionEvent(this,
 				ActionEvent.ACTION_PERFORMED, null));
 			return;
 		}
-		
+
 		JPopupMenu popup = new JPopupMenu();
 		for (int i = 0; i < actions.length; i++)
 			popup.add(new JMenuItem((Action) actions[i]));
-		
+
 		try
 		{
 			StyledDocument doc = (StyledDocument) getDocument();
 			Element e = doc.getCharacterElement(pos);
 			Point pt = modelToView(e.getStartOffset()).getLocation();
 			FontMetrics fm = getFontMetrics(getFont());
-			
+
 			popup.show(this, pt.x, pt.y + fm.getHeight());
 		}
 		catch (Exception e)
@@ -367,9 +349,9 @@ public class ConsolePane extends JTextPane
 			e.printStackTrace();
 		}
 	} // }}}
-	
+
 	// }}}
-	
+
 	// {{{ Inner classes
 	// {{{ MouseHandler class
 	class MouseHandler extends MouseInputAdapter
@@ -381,7 +363,7 @@ public class ConsolePane extends JTextPane
 			if (pos >= 0)
 				clickLink(pos);
 		}
-		
+
 		public void mouseMoved(MouseEvent e)
 		{
 			Point pt = new Point(e.getX(), e.getY());
@@ -393,29 +375,29 @@ public class ConsolePane extends JTextPane
 					cursor = MoveCursor;
 				else
 					cursor = DefaultCursor;
-				
+
 				if (getCursor() != cursor)
 					setCursor(cursor);
 			}
 		}
 	} // }}}
-	
+
 	// {{{ EnterAction class
 	class EnterAction extends AbstractAction
 	{
 		public void actionPerformed(ActionEvent evt)
 		{
 			/*
-			* setCaretPosition(getDocument().getLength());
-			* replaceSelection("\n");
-			* 
-			* history.addCurrentToHistory(); history.setIndex(-1);
-			*/
-			
+			 * setCaretPosition(getDocument().getLength());
+			 * replaceSelection("\n");
+			 * 
+			 * history.addCurrentToHistory(); history.setIndex(-1);
+			 */
+
 			fireActionEvent(getInput());
 		}
 	} // }}}
-	
+
 	// {{{ BackspaceAction class
 	class BackspaceAction extends AbstractAction
 	{
@@ -426,14 +408,14 @@ public class ConsolePane extends JTextPane
 				replaceSelection("");
 				return;
 			}
-			
+
 			int caret = getCaretPosition();
 			if (caret == getInputStart())
 			{
 				getToolkit().beep();
 				return;
 			}
-			
+
 			try
 			{
 				getDocument().remove(caret - 1, 1);
@@ -444,7 +426,7 @@ public class ConsolePane extends JTextPane
 			}
 		}
 	} // }}}
-	
+
 	// {{{ DeleteInputAction class 
 	/** Deletes the input that was typed by the user so far */
 	class DeleteInputAction extends SelectHomeAction
@@ -460,60 +442,32 @@ public class ConsolePane extends JTextPane
 	// {{{ HomeAction class
 	class HomeAction extends AbstractAction
 	{
-		// Funa edit
-		private Action delegate;
-		
-		HomeAction(Action delegate)
-		{
-			this.delegate = delegate;
-		}
-		
 		public void actionPerformed(ActionEvent evt)
 		{
-			// Funa edit
-			if (getCaretPosition() >= getInputStart())
-				setCaretPosition(getInputStart());
-			else
-				delegate.actionPerformed(evt);
-			
+			setCaretPosition(getInputStart());
 		}
 	} // }}}
-	
+
 	// {{{ SelectHomeAction class
 	class SelectHomeAction extends AbstractAction
 	{
-		// Funa edit
-		private Action delegate;
-		
-		SelectHomeAction(){
-		}
-		SelectHomeAction(Action delegate)
-		{
-			this.delegate = delegate;
-		}
-		
 		public void actionPerformed(ActionEvent evt)
 		{
-			// Funa edit
-			if (getCaretPosition() >= getInputStart())
-				select(getInputStart(), getCaretPosition());
-			else
-				delegate.actionPerformed(evt);
-			
+			select(getInputStart(), getCaretPosition());
 			
 		}
 	} // }}}
-	
+
 	// {{{ HistoryUpAction class
 	class HistoryUpAction extends AbstractAction
 	{
 		private Action delegate;
-		
+
 		HistoryUpAction(Action delegate)
 		{
 			this.delegate = delegate;
 		}
-		
+
 		public void actionPerformed(ActionEvent evt)
 		{
 			if (getCaretPosition() >= getInputStart())
@@ -522,17 +476,17 @@ public class ConsolePane extends JTextPane
 				delegate.actionPerformed(evt);
 		}
 	} // }}}
-	
+
 	// {{{ HistoryDownAction class
 	class HistoryDownAction extends AbstractAction
 	{
 		private Action delegate;
-		
+
 		HistoryDownAction(Action delegate)
 		{
 			this.delegate = delegate;
 		}
-		
+
 		public void actionPerformed(ActionEvent evt)
 		{
 			if (getCaretPosition() >= getInputStart())
@@ -541,17 +495,17 @@ public class ConsolePane extends JTextPane
 				delegate.actionPerformed(evt);
 		}
 	} // }}}
-	
+
 	// {{{ SearchUpAction class
 	class SearchUpAction extends AbstractAction
 	{
 		private Action delegate;
-		
+
 		SearchUpAction(Action delegate)
 		{
 			this.delegate = delegate;
 		}
-		
+
 		public void actionPerformed(ActionEvent evt)
 		{
 			if (getCaretPosition() >= getInputStart())
@@ -560,17 +514,17 @@ public class ConsolePane extends JTextPane
 				delegate.actionPerformed(evt);
 		}
 	} // }}}
-	
+
 	// {{{ SearchDownAction class
 	class SearchDownAction extends AbstractAction
 	{
 		private Action delegate;
-		
+
 		SearchDownAction(Action delegate)
 		{
 			this.delegate = delegate;
 		}
-		
+
 		public void actionPerformed(ActionEvent evt)
 		{
 			if (getCaretPosition() >= getInputStart())
@@ -579,7 +533,7 @@ public class ConsolePane extends JTextPane
 				delegate.actionPerformed(evt);
 		}
 	} // }}}
-	
+
 	// {{{ DummyAction class
 	class DummyAction extends AbstractAction
 	{
@@ -587,7 +541,7 @@ public class ConsolePane extends JTextPane
 		{
 		}
 	} // }}}
-	
+
 	// {{{ DocumentHandler class
 	class DocumentHandler implements DocumentListener
 	{
@@ -595,18 +549,18 @@ public class ConsolePane extends JTextPane
 		{
 			int offset = e.getOffset();
 			int length = e.getLength();
-			
+
 			int cmdStart = getInputStart();
 			if (offset < cmdStart)
 				cmdStart += length;
 			setInputStart(cmdStart);
 		}
-		
+
 		public void removeUpdate(DocumentEvent e)
 		{
 			int offset = e.getOffset();
 			int length = e.getLength();
-			
+
 			int cmdStart = getInputStart();
 			if (offset < cmdStart)
 			{
@@ -617,11 +571,11 @@ public class ConsolePane extends JTextPane
 			}
 			setInputStart(cmdStart);
 		}
-		
+
 		public void changedUpdate(DocumentEvent e)
 		{
 		}
 	} // }}}
 	// }}}
-	
+
 }

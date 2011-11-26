@@ -5,6 +5,7 @@
  *
  * Copyright (C) 2000, 2005 Slava Pestov
  * parts Copyright (C) 2006 Alan Ezust
+ * parts Copyright (C) 2010 Eric Le Lay
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -61,6 +62,7 @@ import org.gjt.sp.util.Log;
 import console.SystemShell.ConsoleState;
 import errorlist.DefaultErrorSource;
 import errorlist.ErrorSource;
+import org.gjt.sp.util.StandardUtilities;
 //}}}
 
 // {{{ class Console
@@ -69,7 +71,7 @@ import errorlist.ErrorSource;
  * May contain multiple Shells, each with its own shell state.
  *
  *
- * @version $Id: Console.java 15840 2009-08-02 00:02:37Z ezust $
+ * @version $Id: Console.java 19717 2011-07-30 18:31:49Z ezust $
  */
 
 public class Console extends JPanel
@@ -120,7 +122,13 @@ implements EBComponent, DefaultFocusComponent
 		initGUI();
 
 		propertiesChanged();
-		Shell s = Shell.getShell("System");
+		String defShell = jEdit.getProperty("console.shell.default", "System");
+		if (defShell.equals(jEdit.getProperty("options.last-selected"))) {
+			defShell = jEdit.getProperty("console.shell");			
+		}
+		
+		Shell s = Shell.getShell(defShell);
+		if (s == null) s = Shell.getShell("System");
 		setShell(s);
 		load();
 		
@@ -158,11 +166,10 @@ implements EBComponent, DefaultFocusComponent
 			listener.finalize();
 		}
 		ErrorSource.unregisterErrorSource(errorSource);
-
-		Iterator iter = shellStateMap.values().iterator();
+		Iterator<ShellState> iter = shellStateMap.values().iterator();
 		while(iter.hasNext())
 		{
-			ShellState state = (ShellState)iter.next();
+			ShellState state = iter.next();
 			state.shell.closeConsole(this);
 		}
 		animation.stop();
@@ -200,7 +207,21 @@ implements EBComponent, DefaultFocusComponent
 			return null;
 
 		String name = shell.getName();
-		text.setHistoryModel(getShellHistory(shell));
+		String shellHistory = getShellHistory(shell);
+		String limit = jEdit.getProperty("console.historyLimit");
+		if(limit != null)
+		{
+			try
+			{
+				HistoryModel.getModel(shellHistory).setSize(
+					Integer.parseInt(limit));
+			}
+			catch(NumberFormatException nfe)
+			{
+				jEdit.unsetProperty("console.historyLimit");
+			}
+		}
+		text.setHistoryModel(shellHistory);
 
 		shellState = shellStateMap.get(name);
 		if(shellState == null)
@@ -210,7 +231,7 @@ implements EBComponent, DefaultFocusComponent
 			shell.printInfoMessage(shellState);
 			shell.printPrompt(this,shellState);
 		}
-
+		jEdit.setProperty("console.shell", name);
 		text.setDocument(shellState.scrollback);
 		if (shell != this.currentShell) {
 			shellCombo.setSelectedItem(name);
@@ -299,7 +320,7 @@ implements EBComponent, DefaultFocusComponent
 		if(msg instanceof PropertiesChanged) propertiesChanged();
 		else if (msg instanceof DockableWindowUpdate) {
 			DockableWindowUpdate dwu = (DockableWindowUpdate) msg;
-			if (dwu.getWhat() != null &&  dwu.getWhat().equals(dwu.ACTIVATED))
+			if (dwu.getWhat() != null &&  dwu.getWhat().equals(DockableWindowUpdate.ACTIVATED))
 				if (dwu.getDockable().equals("console")) 
 					scrollToBottom();
 		}
@@ -364,7 +385,7 @@ implements EBComponent, DefaultFocusComponent
 		return plainColor;
 	} // }}}
 
-	// {{ getId() method
+	// {{{ getId() method
 	/** @return a unique identifier starting at 0, representing which instance of Console this is,
 	    or -1 if that value can not be determined. 
 	*/
@@ -523,7 +544,7 @@ implements EBComponent, DefaultFocusComponent
 				recorder.record("runCommandToBuffer(view,\""
 					+ shell.getName()
 					+ "\",\""
-					+ MiscUtilities.charsToEscapes(cmd)
+					+ StandardUtilities.charsToEscapes(cmd)
 					+ "\");");
 			}
 			else
@@ -531,7 +552,7 @@ implements EBComponent, DefaultFocusComponent
 				recorder.record("runCommandInConsole(view,\""
 					+ shell.getName()
 					+ "\",\""
-					+ MiscUtilities.charsToEscapes(cmd)
+					+ StandardUtilities.charsToEscapes(cmd)
 					+ "\");");
 			}
 		}
@@ -707,7 +728,7 @@ implements EBComponent, DefaultFocusComponent
 	private void updateShellList()
 	{
 		String[] shells = Shell.getShellNames();
-		Arrays.sort(shells,new MiscUtilities.StringICaseCompare());
+		Arrays.sort(shells,new StandardUtilities.StringCompare<String>(true));
 		shellCombo.setModel(new DefaultComboBoxModel(shells));
 		shellCombo.setMaximumSize(shellCombo.getPreferredSize());
 	} //}}}
@@ -761,10 +782,10 @@ implements EBComponent, DefaultFocusComponent
 
 			updateShellList();
 
-			Iterator iter = shellStateMap.keySet().iterator();
+			Iterator<String> iter = shellStateMap.keySet().iterator();
 			while(iter.hasNext())
 			{
-				String name = (String)iter.next();
+				String name = iter.next();
 				if(Shell.getShell(name) == null)
 				{
 					if(this.currentShell.getName().equals(name))
@@ -840,8 +861,7 @@ implements EBComponent, DefaultFocusComponent
 			getOutput().print(getInfoColor(), jEdit.getProperty(
 				"console.completions"));
 
-			Arrays.sort(info.completions,new MiscUtilities
-				.StringICaseCompare());
+			Arrays.sort(info.completions,new StandardUtilities.StringCompare<String>(true));
 
 			for(int i = 0; i < info.completions.length; i++)
 				print(null,info.completions[i]);
@@ -996,36 +1016,41 @@ implements EBComponent, DefaultFocusComponent
 
 			setInputStart(scrollback.getLength());
 		} //}}}
-       } //}}}
+	} //}}}
 
-        // {{{ LengthFilter class
-       static private class LengthFilter extends DocumentFilter
-       {
-	       public LengthFilter()
-	       {
-		       super();
-	       }
-
-	       //{{{ insertString() method
-	       public void insertString(DocumentFilter.FilterBypass fb, int offset,
-		       String str, AttributeSet attr) throws BadLocationException
-	       {
-		       replace(fb, offset, 0, str, attr);
-	       } //}}}
-
-	       //{{{ replace() method
-	       public void replace(DocumentFilter.FilterBypass fb, int offset,
-		       int length, String str, AttributeSet attrs)
-		       throws BadLocationException
-	       {
-		       int newLength = fb.getDocument().getLength() -
-			       length + str.length();
-		       fb.replace(offset, length, str, attrs);
-		       int limit = jEdit.getIntegerProperty("console.outputLimit", Integer.MAX_VALUE);
-		       if(newLength > limit)
-			       fb.remove(0, newLength - limit - 1);
-	       } //}}}
-       } //}}}
+	// {{{ LengthFilter class
+	static private class LengthFilter extends DocumentFilter
+	{
+		public LengthFilter()
+		{
+			super();
+		}
+	
+		//{{{ insertString() method
+		public void insertString(DocumentFilter.FilterBypass fb, int offset,
+			String str, AttributeSet attr) throws BadLocationException
+		{
+			replace(fb, offset, 0, str, attr);
+		} //}}}
+	
+		//{{{ replace() method
+		public void replace(DocumentFilter.FilterBypass fb, int offset,
+			int length, String str, AttributeSet attrs)
+				throws BadLocationException
+		{
+			int newLength = fb.getDocument().getLength() -
+				length + str.length();
+			fb.replace(offset, length, str, attrs);
+			int limit = jEdit.getIntegerProperty("console.outputLimit", DEFAULT_LIMIT);
+			if(newLength > limit)
+				fb.remove(0, newLength - limit - 1);
+		} //}}}
+	
+		// Not so large default limit to avoid performance down
+		// with large output.
+		// This will be sufficient to first use.
+		private final int DEFAULT_LIMIT = 80/*column*/ * 1000/*lines*/;
+	} //}}}
 
 	// {{{ EvalAction class
 	public static class EvalAction extends AbstractAction

@@ -4,6 +4,7 @@
  * :folding=explicit:collapseFolds=1:
  *
  * Copyright (C) 1999, 2004 Slava Pestov
+ * parts Copyright (C) 2010 Eric Le Lay
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -38,7 +39,11 @@ import org.gjt.sp.jedit.AbstractOptionPane;
 import org.gjt.sp.jedit.MiscUtilities;
 import org.gjt.sp.jedit.jEdit;
 import org.gjt.sp.jedit.gui.FontSelector;
+import org.gjt.sp.util.StandardUtilities.StringCompare;
+import org.gjt.sp.util.StringList;
+import org.gjt.sp.jedit.gui.HistoryModel ;
 
+import console.Shell;
 import console.gui.Label;
 //}}}
 
@@ -49,6 +54,7 @@ public class GeneralOptionPane extends AbstractOptionPane implements ActionListe
 
 	private FontSelector font;
 	private JComboBox encoding;
+	private JComboBox defaultShell;
 	private JButton bgColor;
 	private JButton usejEditBgColor;
 	private JButton plainColor;
@@ -58,6 +64,7 @@ public class GeneralOptionPane extends AbstractOptionPane implements ActionListe
 	private JButton errorColor;
 	private JCheckBox showWelcomeMessage;
 	private JTextField limit ;
+	private JTextField limitHistory ;
 	
 	
 	// }}}
@@ -72,6 +79,19 @@ public class GeneralOptionPane extends AbstractOptionPane implements ActionListe
 	protected void _init()
 	{
 		
+		StringList sl = new StringList(Shell.getShellNames());
+		int idx = sl.indexOf("System");
+		if (idx != 0) {
+			String other = sl.get(0);
+			sl.set(idx, other);
+			sl.set(0, "System");			
+		}
+		sl.add(jEdit.getProperty("options.last-selected"));
+		defaultShell = new JComboBox(sl.toArray());
+		String ds = jEdit.getProperty("console.shell.default", "System");
+		defaultShell.setSelectedItem(ds);
+		addComponent(jEdit.getProperty("options.console.general.defaultshell", "Default Shell:"),
+			defaultShell);
 
 		showWelcomeMessage = new JCheckBox();
 		showWelcomeMessage.setText(jEdit.getProperty("options.console.general.welcome"));
@@ -82,17 +102,23 @@ public class GeneralOptionPane extends AbstractOptionPane implements ActionListe
 		addComponent(jEdit.getProperty("options.console.general.font"), font);
 
 		String[] encodings = MiscUtilities.getEncodings(true);
-		Arrays.sort(encodings,new MiscUtilities.StringICaseCompare());
+		// Arrays.sort(encodings,new MiscUtilities.StringICaseCompare());
+		Arrays.sort(encodings, new StringCompare<String>(true));
 		encoding = new JComboBox(encodings);
 		encoding.setEditable(true);
 		encoding.setSelectedItem(jEdit.getProperty("console.encoding"));
 		addComponent(jEdit.getProperty("options.console.general.encoding"),
 			encoding);
 
+		
 		Label limitLabel = new Label("options.console.general.charlimit");
 		limit = new JTextField(jEdit.getProperty("console.outputLimit"));
 		addComponent(limitLabel, limit);
 		
+		Label limitHistoryLabel = new Label("options.console.general.historylimit");
+		limitHistory = new JTextField(jEdit.getProperty("console.historyLimit",
+			String.valueOf(HistoryModel.getDefaultMax())));
+		addComponent(limitHistoryLabel, limitHistory);
 		
 		usejEditBgColor = new JButton("reset");
 		usejEditBgColor.addActionListener(this);
@@ -125,9 +151,19 @@ public class GeneralOptionPane extends AbstractOptionPane implements ActionListe
 		else
 			jEdit.unsetProperty("console.outputLimit");
 		
+		String limithist = limitHistory.getText();
+		if(limithist != null && limithist.length() > 0
+			&& !String.valueOf(HistoryModel.getDefaultMax()).equals(limithist))
+			jEdit.setProperty("console.historyLimit", limithist);
+		else
+			jEdit.unsetProperty("console.historyLimit");
+
  		jEdit.setProperty("console.encoding", 
  			(String)encoding.getSelectedItem());
 
+ 		jEdit.setProperty("console.shell.default", 
+ 			(String)defaultShell.getSelectedItem());
+ 		
 		jEdit.setColorProperty("console.bgColor",
 			bgColor.getBackground());
 		jEdit.setColorProperty("console.plainColor",
